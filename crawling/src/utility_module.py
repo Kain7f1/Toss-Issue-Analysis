@@ -151,3 +151,12 @@ def error_check(error_log, folder_path, file_name):
         print("[에러 발생 로그를 파일로 저장함]")
     else:
         print("[에러 없음]")
+
+
+# 목적 : title 텍스트를 전처리한다
+def preprocess_title(text):
+    result = re.sub(r'\[\d+\]$', '', text).replace("\u202c", "")
+    if len(result) == 0:
+        return "_"
+    else:
+        return result
