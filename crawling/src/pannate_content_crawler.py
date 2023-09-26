@@ -13,7 +13,8 @@ import time
 # columns: [date, title, url, media, contents, is_comment]
 
 
-new_row = []
+df_header = pd.DataFrame(columns=['date', 'title', 'url', 'media', 'contents', 'is_comment'])
+df_header.to_csv('testing.csv', index=False, encoding='utf-8')
 def extract_components_from_urls(url_list):
     try:
         for url in url_list:
@@ -35,7 +36,7 @@ def extract_components_from_urls(url_list):
                 if date_tag:
                     print(f"The text inside the date span from {url} is: {date_tag.text[:10].replace('.', '-')}")
                     final_date = date_tag.text[:10].replace('.', '-')
-                    print(type(final_date))
+
 
                 else:
                     pass
@@ -76,63 +77,57 @@ def extract_components_from_urls(url_list):
                 pass
 
 
-            new_row = pd.DataFrame(index=['date', 'title', 'url', 'media', 'contents', 'is_comment'])
-            new_row.loc[0] = [final_date,final_title,final_url,final_media,final_content,is_comment_main_text]
-
-
-
-
-
-
 
 
             #####################################################
 
 
-#             # 댓글 갖고오기
-#             # 댓글의 date 가져오기
-#             dt_tags = soup.find_all('dt')
-#
-#
-#             for dt in dt_tags:
-#                 i_tag = dt.find('i')
-#                 if i_tag:
-#                     print("Found i tag inside dt:", i_tag)
-#                     date_lst.append(i_tag.text[:10].replace('.', '-'))
-#
-#
-#
-#             #댓글 컨텐츠
-#             pattern = re.compile('content_area_\d{8}')
-#             # 정규식표현으로 댓글태그 형식 지정
-#             # Note: 네이트판과 같은경우 댓글 태그는 contentArea뒤에 랜덤으로 8자리 숫자가 붙는다
-#             target_div_reply = soup.find('dd', {'id': pattern})
-#
-#             if target_div_reply:
-#                 print(target_div_content.text)
-#                 content_text.append(target_div_reply.text.strip())
-#                 media.append("pannate_teen")
-#                 is_comment.append('1')
-#
-#                 #댓글 컨텐츠가 있을 경우 원문 title 텍스트에 대한 내용과 url을 넣어준다
-#                 if target_div:
-#                     h1_tag = target_div.find('h1')
-#                     if h1_tag:
-#                         print(f"The text inside the h1 tag from {url} is: {h1_tag.text}")
-#                         title_lst.append(h1_tag.text)
-#                         pann_url.append(f"{url}")
-#                     else:
-#                         title_lst.append(None)
-#                 else:
-#                     title_lst.append(None)
-#             else:
-#                 print("해당하는 div태그가 없습니다")
-#
+            # 댓글 갖고오기
+            # 댓글의 date 가져오기
+            dt_tags = soup.find_all('dt')
+
+
+            for dt in dt_tags:
+                i_tag = dt.find('i')
+                if i_tag:
+                    print("Found i tag inside dt:", i_tag)
+                    print(i_tag.text[:10].replace('.', '-'))
+                    final_date = i_tag.text[:10].replace('.', '-')
 
 
 
+            #댓글 컨텐츠
+            pattern = re.compile('content_area_\d{8}')
+            # 정규식표현으로 댓글태그 형식 지정
+            # Note: 네이트판과 같은경우 댓글 태그는 contentArea뒤에 랜덤으로 8자리 숫자가 붙는다
+            target_div_reply = soup.find('dd', {'id': pattern})
+
+            if target_div_reply:
+                print(target_div_content.text)
+                final_content = (target_div_reply.text.strip())
+                final_media ="pannate_teen"
+                is_comment_main_text = "1"
+                print(final_content)
+                print(is_comment_main_text)
+
+                #댓글 컨텐츠가 있을 경우 원문 title 텍스트에 대한 내용과 url을 넣어준다
+                if target_div:
+                    h1_tag = target_div.find('h1')
+                    if h1_tag:
+                        print(f"The text inside the h1 tag from {url} is: {h1_tag.text}")
+                        final_title=h1_tag.text
+                        final_url=f"{url}"
+                    else:
+                        title_lst.append(None)
+                else:
+                    title_lst.append(None)
+            else:
+                print("해당하는 div태그가 없습니다")
 
 
+
+        new_row.loc[1] = [final_date, final_title, final_url, final_media, final_content, is_comment_main_text]
+        new_row.to_csv('testing.csv', mode='a', header=False, index=False, encoding='utf-8')
         return
 
 
