@@ -143,9 +143,9 @@ def error_check(error_log, folder_path, file_name):
     # error 발생 했는지 확인
     if len(error_log) > 0:
         print("[에러 발생 로그 입니다]")
-        for date, error in error_log:
-            print(date, error)      # 에러 로그 출력
-        df_error = pd.DataFrame(error_log, columns=['date', 'error'])   # df 생성
+        for error in error_log:
+            print(error)      # 에러 로그 출력
+        df_error = pd.DataFrame(error_log, columns=['error'])   # df 생성
         error_file_path = os.path.join(folder_path, f"{file_name}_error.csv")
         df_error.to_csv(error_file_path, encoding='utf-8', index=False)
         print("[에러 발생 로그를 파일로 저장함]")
@@ -154,8 +154,9 @@ def error_check(error_log, folder_path, file_name):
 
 
 # 목적 : title 텍스트를 전처리한다
+# 기능 : 끝에붙은 대괄호와 안의 숫자, 콤마 (","), "u\202c" 를 제거한다
 def preprocess_title(text):
-    result = re.sub(r'\[\d+\]$', '', text).replace("\u202c", "")
+    result = re.sub(r'\[\d+\]$', '', text).replace("\u202c", "").replace(',', '')
     if len(result) == 0:
         return "_"
     else:
