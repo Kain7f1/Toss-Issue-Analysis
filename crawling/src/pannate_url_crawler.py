@@ -67,12 +67,13 @@ def get_pann_url(keyword, max_pages=400):
         for i, link in enumerate(srch_result):
             if 'title' in link.attrs:  # 'title' 속성이 있는 경우에만 딕셔너리에 넣어주기.
                 title_text = link['title']
+                clean_title_text = re.sub(r'\[.*?\]', '',title_text.strip())
 
                 # "페이지"라는 텍스트가 title_text에 없을 경우만 처리
                 if "페이지" not in title_text:
                     print(f"링크 {i + 1} 처리 중...")
                     row = {
-                        'title': title_text,
+                        'title': clean_title_text,
                         'url': 'https://pann.nate.com' + link['href'],
                         'media': 'pannate_teen'
                     }
