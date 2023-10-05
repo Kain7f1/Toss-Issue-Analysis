@@ -3,3 +3,4 @@ numpy==1.26.0
 beautifulsoup4==4.12.2
 selenium==3.14.0
 requests==2.31.0
+webdriver_manager==4.0.1
