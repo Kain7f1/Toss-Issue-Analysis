@@ -3,6 +3,7 @@
 # 20230927
 #############################
 
+from crawling_tool import get_gall_id
 import utility_module as util
 import requests
 import pandas as pd
@@ -42,18 +43,18 @@ def get_driver():
 # 리턴값 : 없음
 # 생성 파일 : content_dcinside_toss.csv
 # columns = ['date', 'title', 'url', 'media', 'content', 'is_comment']
-def get_content_dc(media):
-    # media = "dcinside_toss"  # 토스 갤러리 media column
+def get_content_dc(gall_url):
+    gall_id = get_gall_id(gall_url)
     header = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
     }
-    url_folder_path = f"./url/{media}"              # 읽어올 폴더 경로 설정
-    content_folder_path = f"./content/{media}"      # 저장할 폴더 경로 설정
+    url_folder_path = f"./url/{gall_id}"              # 읽어올 폴더 경로 설정
+    content_folder_path = f"./content/{gall_id}"      # 저장할 폴더 경로 설정
     util.create_folder(content_folder_path)      # 저장할 폴더 만들기
     error_log = []                                  # 에러 로그 저장 [’error’]
     data_list = []                                  # 데이터 리스트 ['date', 'title', 'url', 'media', 'content', 'is_comment']
-    url_csv_file_name = f"url_{media}.csv"          # url 파일 이름
-    content_csv_file_name = f"content_{media}.csv"  # content 파일 이름
+    url_csv_file_name = f"url_{gall_id}.csv"          # url 파일 이름
+    content_csv_file_name = f"content_{gall_id}.csv"  # content 파일 이름
     now_year = str(datetime.datetime.now().year)    # 올해 년도
 
     #################################
