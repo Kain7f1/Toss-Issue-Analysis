@@ -1,4 +1,4 @@
-from dcinside_url_crawler import get_url_dc_toss, get_url_dcinside
+from dcinside_url_crawler import get_url_dcinside
 from dcinside_content_crawler import get_content_dc
 import utility_module as util
 
@@ -17,16 +17,14 @@ gall_url = {
     "토스": "https://gall.dcinside.com/mgallery/board/lists/?id=toss"
 }
 
-
+# 해외주식, 코스피, 체크카드, SFF, 토스
 # [1. url 크롤링]
-get_url_dcinside(gall_url["토스"], keyword)
-
+# get_url_dcinside(gall_url["토스"], keyword)
 
 # get_url_dc_toss(keyword, gall_url["토스"])
 
-
 # [2. content 크롤링]
-# get_content_dc(gall_url["토스갤"])
+get_content_dc(gall_url["해외주식"])
 
 #########################################
 # url = "https://gall.dcinside.com/board/lists/?id=skwyverns_new1&s_type=search_subject_memo&s_keyword=.E3.85.87.E3.85.87"
