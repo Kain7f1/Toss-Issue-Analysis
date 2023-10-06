@@ -3,12 +3,11 @@
 import utility_module as utility
 import requests
 import re
-import pandas as pd
 from bs4 import BeautifulSoup
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
+
 
 # 목적 : 글 url 받아오기 - 토스 갤러리
 # 입력값 : 입력 키워드(토스), 시작 날짜(20150226), 종료 날짜(20230919)
