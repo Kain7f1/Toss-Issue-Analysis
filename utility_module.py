@@ -3,6 +3,7 @@ import os
 import re
 
 
+#####################################
 # 기능 : 폴더를 생성한다
 # 입력값 : 파일 경로(이름)
 def create_folder(folder_path):
@@ -13,10 +14,12 @@ def create_folder(folder_path):
         os.makedirs(folder_path)
         print(f"[폴더 : {folder_path}를 만들었습니다]")
     print("[create_folder()를 종료합니다]")
+    return folder_path
 
 
+#####################################
 # 입력값 : folder_path, endswith (파일이름의 검색조건 : 파일명의 끝)
-# file_names 리스트를 가져오는 함수
+# 기능 : file_names 리스트를 가져오는 함수
 def load_file_names(folder_path, endswith='url.csv'):
     files = []
     # 폴더 내의 모든 파일을 탐색
@@ -32,37 +35,50 @@ def load_file_names(folder_path, endswith='url.csv'):
     return files
 
 
-# df 내용을 읽어옴
-# return : df
+#####################################
+# read_file()
+# 기능 : .csv의 내용을 읽어옴
+# 리턴값 : df 형식의 데이터
 def read_file(folder_path, file_name):
     combined_path = os.path.join(folder_path, file_name)        # os.path.join()을 사용하여 두 경로를 합칩니다.
     return pd.read_csv(combined_path, encoding='utf-8')
 
 
-# df의 내용을 folder/file 로 저장
+#####################################
+# save_file()
+# 기능 : df의 내용을 파일로 저장한다
 def save_file(df, folder_path, file_name):
     combined_path = os.path.join(folder_path, file_name)        # os.path.join()을 사용하여 두 경로를 합칩니다.
     df.to_csv(combined_path, encoding='utf-8', index=False)     # df의 내용을 csv 형식으로 저장합니다
 
 
-def combine_content_file(keyword):
-    content_file_names = load_file_names(f"./{keyword}/content", endswith='content.csv')
-    result_file_name = f"{keyword}_content.csv"
+#####################################
+# combine_csv_file()
+# 기능 : df형식의 데이터가 저장되어있는 .csv 파일들을 하나로 합친다
+def combine_csv_file(folder_path, result_file_name):
+    csv_file_names = load_file_names(folder_path, endswith='.csv')   # .csv로 끝나는 파일들을 전부 검색한다
     dataframes = []
-    print(f'[combine_content_file({keyword})를 진행합니다]')
-    for content_file_name in content_file_names:
-        df_content = read_file(f"./{keyword}/content", file_name=content_file_name)
+
+    # 1. 잘 불러왔는지 확인하기
+    print(f'[{len(csv_file_names)}개의 파일을 합치겠습니다]')
+    for csv_file_name in csv_file_names:
+        print(csv_file_name)
+
+    # 2. df 합치기
+    for csv_file_name in csv_file_names:
+        df_content = read_file(folder_path, file_name=csv_file_name)
         dataframes.append(df_content)
-    merged_df = pd.concat(dataframes)
-    print(merged_df.head())
+    merged_df = pd.concat(dataframes).reset_index(drop=True)
     print(merged_df.tail())
-    merged_df.dropna(inplace=True)
-    # csv로 만든다
-    save_file(merged_df, f"./{keyword}", file_name=result_file_name)
-    print(f"[content 파일들을 하나로 합쳤습니다]")
+
+    # 3. df를 csv로 만든다
+    result_folder_path = create_folder(f"{folder_path}/{result_file_name}")
+    save_file(merged_df, result_folder_path, file_name=f"{result_file_name}.csv")
+    print(f"[{len(csv_file_names)}개의 파일을 {result_file_name}.csv 파일로 합쳤습니다]")
 
 
-# 목적 : 에러 로그를 읽고, 에러가 있으면 csv 파일을 만든다
+#####################################
+# 기능 : 에러 로그를 읽고, 에러가 있으면 csv 파일을 만든다
 def error_check(error_log, folder_path, file_name):
     # error 발생 했는지 확인
     if len(error_log) > 0:
@@ -77,24 +93,46 @@ def error_check(error_log, folder_path, file_name):
         print("[에러 없음]")
 
 
+#####################################
 # 목적 : title 텍스트를 전처리한다
 # 기능 : 끝에붙은 대괄호와 안의 숫자, 콤마 (","), "u\202c" 를 제거한다
 def preprocess_title(text):
-    result = re.sub(r'\[\d+\]$', '', text).replace("\u202c", "").replace(',', '').strip()
+    # 바꿀 것들 리스트
+    replacements = {
+        "\u202c": "",
+        ',': ' '
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)       # replacements의 전자를 후자로 교체함
+    result = re.sub(r'\[\d+\]$', '', text).strip()  # 뒤에 붙는 댓글수 [3]같은거 제거한다. + 공백제거
     if len(result) == 0:
-        return "_"
+        return "_"  # 널값이면 "_"을 리턴한다
     else:
-        return result
+        return result  # 전처리 결과값 리턴
 
 
+#####################################
+# preprocess_content_dc()
+# 전처리 함수 : dcinside
 def preprocess_content_dc(text):
-    result = text.replace("- dc official App", "").replace("- dc App", "").replace(',', '').strip()
+    # 바꿀 것들 리스트
+    replacements = {
+        '\n': ' ',
+        '\t': ' ',
+        ',': ' ',
+        '- dc official App': '',
+        '- dc App': ''
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)   # replacements의 전자를 후자로 교체함
+    result = text.strip()               # 공백제거
     if len(result) == 0:
-        return "_"
+        return "_"      # 널값이면 "_"을 리턴한다
     else:
-        return result
+        return result   # 전처리 결과값 리턴
 
 
+#####################################
 # input_list의 원소에 blacklist 의 원소 중 하나라도 있으면 True, 아니면 False
 def is_in_blacklist(input_list, blacklist):
     return any(element in input_list for element in blacklist)

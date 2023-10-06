@@ -1,6 +1,4 @@
-from dcinside_url_crawler import get_url_dcinside
 from dcinside_content_crawler import get_content_dc
-import utility_module as util
 
 # 설정값
 keyword = "토스"

@@ -1,6 +1,6 @@
 # Made by Hansol Lee 20230925
 
-from crawling_tool import get_gall_id, get_url_base, get_max_num, get_last_page, get_driver
+from crawling_tool import get_gall_id, get_url_base, get_max_num, get_last_page
 from bs4 import BeautifulSoup
 import utility_module as util
 import requests
