@@ -14,7 +14,7 @@ from calendar import monthrange
 import pandas as pd
 import re
 
-
+#수정하였습니다
 def extract_components_from_urls(url_list):
     data_list = []
 
