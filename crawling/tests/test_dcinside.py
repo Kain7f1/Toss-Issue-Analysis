@@ -24,7 +24,7 @@ gall_url = {
 # get_url_dc_toss(keyword, gall_url["토스"])
 
 # [2. content 크롤링]
-get_content_dc(gall_url["SFF"])
+get_content_dc(gall_url["신용카드"])
 
 #########################################
 # url = "https://gall.dcinside.com/board/lists/?id=skwyverns_new1&s_type=search_subject_memo&s_keyword=.E3.85.87.E3.85.87"
