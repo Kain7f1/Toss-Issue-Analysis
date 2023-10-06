@@ -2,11 +2,32 @@ import re
 import requests
 import utility_module as util
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 header = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
     }
+
+
+#############################
+# get_driver()
+# 기능 : driver를 반환합니다
+# 리턴값 : driver
+# 사용법 : driver = get_driver() 쓰고 driver.get(url) 처럼 사용합니다
+def get_driver():
+    CHROME_DRIVER_PATH = "C:/Users/chromedriver.exe"    # (절대경로) Users 폴더에 chromedriver.exe를 설치했음
+    # driver 설정
+    options = webdriver.ChromeOptions()                 # (옵션)
+    # options.add_argument("--start-maximized")         # 창이 최대화 되도록 열리게 한다.
+    options.add_argument("headless")                  # 창이 없이 크롬이 실행이 되도록 만든다
+    options.add_argument("disable-infobars")            # 안내바가 없이 열리게 한다.
+    options.add_argument("disable-gpu")                 # 크롤링 실행시 GPU를 사용하지 않게 한다.
+    options.add_argument("--disable-dev-shm-usage")     # 공유메모리를 사용하지 않는다
+    options.add_argument("--disable-extensions")        # 확장팩을 사용하지 않는다.
+    driver = webdriver.Chrome(CHROME_DRIVER_PATH, options=options)
+    return driver
 
 
 ##############################

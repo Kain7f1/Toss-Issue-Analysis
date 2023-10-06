@@ -3,37 +3,18 @@
 # 20230927
 #############################
 
-from crawling_tool import get_gall_id
+from crawling_tool import get_gall_id, get_driver
 import utility_module as util
 import requests
 import pandas as pd
-import re
 import time
 import datetime
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
 
 
-#############################
-# get_driver()
-# 기능 : driver를 반환합니다
-# 리턴값 : driver
-# 사용법 : driver = get_driver() 쓰고 driver.get(url) 처럼 사용합니다
-def get_driver():
-    CHROME_DRIVER_PATH = "C:/Users/chromedriver.exe"    # (절대경로) Users 폴더에 chromedriver.exe를 설치했음
-    # driver 설정
-    options = webdriver.ChromeOptions()                 # (옵션)
-    # options.add_argument("--start-maximized")         # 창이 최대화 되도록 열리게 한다.
-    options.add_argument("headless")                  # 창이 없이 크롬이 실행이 되도록 만든다
-    options.add_argument("disable-infobars")            # 안내바가 없이 열리게 한다.
-    options.add_argument("disable-gpu")                 # 크롤링 실행시 GPU를 사용하지 않게 한다.
-    options.add_argument("--disable-dev-shm-usage")     # 공유메모리를 사용하지 않는다
-    options.add_argument("--disable-extensions")        # 확장팩을 사용하지 않는다.
-    driver = webdriver.Chrome(CHROME_DRIVER_PATH, options=options)
-    return driver
+header = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
+    }
 
 
 #####################################
@@ -45,9 +26,6 @@ def get_driver():
 # columns = ['date', 'title', 'url', 'media', 'content', 'is_comment']
 def get_content_dc(gall_url):
     gall_id = get_gall_id(gall_url)
-    header = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
-    }
     url_folder_path = f"./url/{gall_id}"              # 읽어올 폴더 경로 설정
     content_folder_path = f"./content/{gall_id}"      # 저장할 폴더 경로 설정
     util.create_folder(content_folder_path)      # 저장할 폴더 만들기
@@ -82,6 +60,7 @@ def get_content_dc(gall_url):
         # 2-b) 본문 정보 row를 data_list에 추가
         try:
             response = requests.get(url, headers=header)
+            time.sleep(2)
             soup = BeautifulSoup(response.text, "html.parser")
             content = util.preprocess_content_dc(soup.find('div', {"class": "write_div"}).text)  # 전처리
             content = title + " " + content      # 본문이 짧을 때는 제목에 메세지가 담겨있는 경우가 많아서 이렇게 처리함
@@ -99,7 +78,7 @@ def get_content_dc(gall_url):
             # 댓글 전부 가져오기
             driver = get_driver()
             driver.get(url)
-            # time.sleep(1)
+            time.sleep(1)
             soup = BeautifulSoup(driver.page_source, "html.parser")
             reply_list = soup.find_all("li", {"class": "ub-content"})   # 댓글 리스트 soup
         except Exception as e:
@@ -155,3 +134,6 @@ def get_content_dc(gall_url):
         util.error_check(error_log, content_folder_path, content_csv_file_name)
     except Exception as e:
         print('[error][에러 로그 체크] ', e)
+
+
+##############################################
