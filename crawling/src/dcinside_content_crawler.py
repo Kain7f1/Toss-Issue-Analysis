@@ -26,13 +26,13 @@ header = {
 # columns = ['date', 'title', 'url', 'media', 'content', 'is_comment']
 def get_content_dc(gall_url):
     gall_id = get_gall_id(gall_url)
-    url_folder_path = f"./url/{gall_id}"              # 읽어올 폴더 경로 설정
-    content_folder_path = f"./content/{gall_id}"      # 저장할 폴더 경로 설정
-    util.create_folder(content_folder_path)      # 저장할 폴더 만들기
+    url_folder_path = f"./url/{gall_id}"            # 읽어올 폴더 경로 설정
+    content_folder_path = f"./content/{gall_id}"    # 저장할 폴더 경로 설정
+    util.create_folder(content_folder_path)         # 저장할 폴더 만들기
     error_log = []                                  # 에러 로그 저장 [’error’]
     data_list = []                                  # 데이터 리스트 ['date', 'title', 'url', 'media', 'content', 'is_comment']
-    url_csv_file_name = f"url_{gall_id}.csv"          # url 파일 이름
-    content_csv_file_name = f"content_{gall_id}.csv"  # content 파일 이름
+    url_csv_file_name = f"url_{gall_id}.csv"        # url csv 파일 이름
+    content_file_name = f"content_{gall_id}"        # content 파일 이름
     now_year = str(datetime.datetime.now().year)    # 올해 년도
 
     #################################
@@ -60,7 +60,7 @@ def get_content_dc(gall_url):
         # 2-b) 본문 정보 row를 data_list에 추가
         try:
             response = requests.get(url, headers=header)
-            time.sleep(2)
+            time.sleep(3)
             soup = BeautifulSoup(response.text, "html.parser")
             content = util.preprocess_content_dc(soup.find('div', {"class": "write_div"}).text)  # 전처리
             content = title + " " + content      # 본문이 짧을 때는 제목에 메세지가 담겨있는 경우가 많아서 이렇게 처리함
@@ -125,13 +125,13 @@ def get_content_dc(gall_url):
     # 4-a) 결과 csv 파일로 저장
     try:
         df_result = pd.DataFrame(data_list, columns=['date', 'title', 'url', 'media', 'content', 'is_comment'])
-        util.save_file(df_result, content_folder_path, f"{content_csv_file_name}.csv")
+        util.save_file(df_result, content_folder_path, f"{content_file_name}.csv")
     except Exception as e:
         print('[error][결과 csv 파일로 저장] ', e)
 
     # 4-b) 에러 로그 체크
     try:
-        util.error_check(error_log, content_folder_path, content_csv_file_name)
+        util.error_check(error_log, content_folder_path, content_file_name)
     except Exception as e:
         print('[error][에러 로그 체크] ', e)
 
