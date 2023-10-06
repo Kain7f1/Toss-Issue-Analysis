@@ -46,7 +46,6 @@ def get_reply_list(time_sleep_sec, url):
 # 기능 : 댓글 html코드를 받아서, 댓글의 date를 리턴합니다
 # 리턴값 : 2023-10-06 형식의 문자열
 def get_reply_date(reply):
-    now_year = str(datetime.datetime.now().year)
     temp_date = reply.find("span", {"class": "date_time"}).text.replace(".", "-")  # 댓글 등록 날짜 추출
     if temp_date[:2] == "20":  # 작년 이전은 "2022.09.07 10:10:54" 형식임
         date = temp_date[:10]
@@ -69,6 +68,7 @@ def is_ignore_reply(reply):
         return True
     else:
         return False
+
 
 #####################################
 # get_content()
