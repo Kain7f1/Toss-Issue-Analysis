@@ -2,10 +2,69 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
+import time
+import datetime
+import utility_module as util
 
 header = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
     }
+
+
+#####################################
+# 본문에서 new_row를 얻어오는 함수
+def get_new_row_from_main_content(time_sleep_sec, url_row):
+    is_comment = 0  # 본문이므로 0
+    try:
+        response = requests.get(url_row['url'], headers=header)
+        time.sleep(time_sleep_sec)
+        soup = BeautifulSoup(response.text, "html.parser")
+        content = util.preprocess_content_dc(soup.find('div', {"class": "write_div"}).text)
+        content = url_row['title'] + " " + content
+        new_row = [url_row['date'], url_row['title'], url_row['url'], url_row['media'], content, is_comment]
+    except:
+        new_row = get_new_row_from_main_content(time_sleep_sec, url_row)
+    return new_row
+
+
+#####################################
+# 기능 : url을 받아 reply_list를 리턴합니다
+# 리턴값 : reply_list
+def get_reply_list(time_sleep_sec, url):
+    driver = get_driver()
+    driver.get(url)
+    time.sleep(time_sleep_sec)
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+    reply_list = soup.find_all("li", {"class": "ub-content"})
+    return reply_list
+
+
+#####################################
+# 기능 : 댓글 html코드를 받아서, 댓글의 date를 리턴합니다
+# 리턴값 : 2023-10-06 형식의 문자열
+def get_reply_date(reply):
+    temp_date = reply.find("span", {"class": "date_time"}).text.replace(".", "-")  # 댓글 등록 날짜 추출
+    if temp_date[:2] == "20":  # 작년 이전은 "2022.09.07 10:10:54" 형식임
+        date = temp_date[:10]
+    else:  # 올해는 "09.30 10:10:54" 형식임
+        date = str(datetime.datetime.now().year) + "-" + temp_date[:5]  # 올해 년도를 추가함
+    return date
+
+
+#####################################
+# 기능 : 무시해야하는 댓글이면, True를 반환하고, 필요한 댓글이면 False를 반환합니다
+def is_ignore_reply(reply):
+    if reply.select_one("p.del_reply"):
+        print("[삭제된 코멘트입니다]")
+        return True
+    elif reply.find('span', {'data-nick': '댓글돌이'}):
+        print("[댓글돌이는 무시합니다]")
+        return True
+    elif reply.find('div', {'class': 'comment_dccon'}):
+        print("[디시콘은 무시합니다]")
+        return True
+    else:
+        return False
 
 
 #############################
@@ -76,16 +135,19 @@ def get_max_num(keyword, gall_id, url_base):
 # 기능 : [dcinside] 갤러리 내에서 검색결과의 마지막 페이지가 몇인지 리턴 (검색한 직후의 url이어야 함)
 # 리턴값 : max_page(int)
 def get_last_page(url):
-    response = requests.get(url, headers=header)
-    soup = BeautifulSoup(response.text, "html.parser").find("div", class_="bottom_paging_wrap re")
-    filtered_a_tags = [a for a in soup.find_all('a') if not a.find('span', class_='sp_pagingicon')]
-    num_button_count =  len(filtered_a_tags) + 1    # 숫자 버튼의 개수
+    try:
+        response = requests.get(url, headers=header)
+        time.sleep(1)
+        soup = BeautifulSoup(response.text, "html.parser").find("div", class_="bottom_paging_wrap re")
+        filtered_a_tags = [a for a in soup.find_all('a') if not a.find('span', class_='sp_pagingicon')]
+        num_button_count = len(filtered_a_tags) + 1    # 숫자 버튼의 개수
 
-    if num_button_count >= 16:    # 한번에 15 page씩 나와서, page가 16개 이상이면 >> 버튼이 생기면서 a태그가 17개가 된다 / 이때의 페이징 처리
-        last_page_url = soup.find_all("a")[-2]['href']                          # 맨 마지막 페이지로 가는 버튼의 url
-        last_page = re.search(r'page=(\d+)', last_page_url).group(1)     # 정규식으로 page 부분의 숫자만 추출
-        last_page = int(last_page)                                              # 맨 마지막 페이지
-    else:
-        last_page = num_button_count
-
+        if num_button_count >= 16:    # 한번에 15 page씩 나와서, page가 16개 이상이면 >> 버튼이 생기면서 a태그가 17개가 된다 / 이때의 페이징 처리
+            last_page_url = soup.find_all("a")[-2]['href']                          # 맨 마지막 페이지로 가는 버튼의 url
+            last_page = re.search(r'page=(\d+)', last_page_url).group(1)     # 정규식으로 page 부분의 숫자만 추출
+            last_page = int(last_page)                                              # 맨 마지막 페이지
+        else:
+            last_page = num_button_count
+    except:
+        last_page = get_last_page(url)
     return last_page
