@@ -8,10 +8,10 @@ import crawling_tool as cr
 import utility_module as util
 import pandas as pd
 import requests
-import time
+
 
 header = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
     }
 
 
@@ -21,12 +21,13 @@ header = {
 # 리턴 : x
 # 생성 파일 : url_dcinside_{gall_id}.csv
 # columns = ['date', 'title', 'url', 'media']
+@util.timer_decorator
 def get_url_dc(gall_url, keyword):
     # 0. 기본값 세팅 단계
     try:
         keyword_unicode = util.convert_to_unicode(keyword)          # 입력받은 키워드를 유니코드로 변환한다
-        gall_id = cr.get_gall_id(gall_url)                     # 갤러리 id
-        url_base = cr.get_url_base(gall_url)                   # "https" 부터 "board/" 이전까지의 url 부분 (major갤, minor갤, mini갤)
+        gall_id = cr.get_gall_id(gall_url)                   # 갤러리 id
+        url_base = cr.get_url_base(gall_url)                 # "https" 부터 "board/" 이전까지의 url 부분 (major갤, minor갤, mini갤)
         max_num = cr.get_max_num(keyword, gall_id, url_base)   # 검색결과 중, 가장 큰 글번호 10000단위로 올림한 값/10000
         print(url_base)
         print(gall_id)
@@ -55,8 +56,8 @@ def get_url_dc(gall_url, keyword):
                 # [검색결과 페이지 불러오기]
                 print(f"[크롤링 시작][search_pos : {search_pos}][page : {page}/{last_page}]")
                 search_url = f"{url_base}/board/lists/?id={gall_id}&page={page}&search_pos=-{search_pos}&s_type=search_subject_memo&s_keyword={keyword_unicode}"
-                response = requests.get(search_url, headers=header)
-                time.sleep(1)
+                with requests.Session() as session:
+                    response = session.get(search_url, headers=header)
                 soup = BeautifulSoup(response.text, "html.parser")      # 검색 결과 페이지
                 element_list = soup.select("table.gall_list tr.ub-content")     # 한 페이지 전체 글 리스트
                 print(f"[글 개수 : {len(element_list)}]")
@@ -71,8 +72,9 @@ def get_url_dc(gall_url, keyword):
                     # [검색결과에서 글 하나씩 크롤링]
                     if element.find('td', class_='gall_writer').get_text() == "운영자":   # 페이지마다 광고글 처리하기
                         continue    # 광고글은 무시하고 넘어가기
-                    date = element.find('td', class_='gall_date')['title'][:10]
-                    title = util.preprocess_title(element.find('td', class_='gall_tit ub-word').find('a').get_text(strip=True))
+                    date = element.find('td', class_='gall_date')['title'][:10]                             # date 가져오기
+                    title = element.find('td', class_='gall_tit ub-word').find('a').get_text(strip=True)    # title 가져오기
+                    title = util.preprocess_title(title)    # 전처리
                     url = "https://gall.dcinside.com" + element.select_one("td.gall_tit a")['href']
                     new_row = [date, title, url, gall_id]
                     data_list.append(new_row)  # data_list에 크롤링한 정보 저장
@@ -117,6 +119,7 @@ def get_url_dc(gall_url, keyword):
 # 4) 끝나면 파일로 저장
 # 5) 에러로그 체크 및 저장
 #################################
+@util.timer_decorator
 def get_content_dc(gall_url, keyword):
     gall_id = cr.get_gall_id(gall_url)
     url_folder_path = f"./url/{gall_id}"            # 읽어올 폴더 경로 설정
@@ -135,32 +138,27 @@ def get_content_dc(gall_url, keyword):
         # 2-a) df_url에서 한 url_row 읽어옴
         # 3-a) 다 끝났으면 다음 url_row 읽어옴
         # 3-b) 2,3 반복
-        print(f"[index : {index}] {url_row['url']}")
+        print(f"[index : {index}] 본문 페이지 : {url_row['url']}")
 
         # {step 1} 본문 정보 row를 data_list에 추가
-        print("{step 1} 본문 정보를 추가하겠습니다")
-        new_row = cr.get_new_row_from_main_content(1, url_row)  # new_row에 정보를 채워둔다
+        print("{step 1 시작} 본문 정보를 추가하겠습니다")
+        new_row = cr.get_new_row_from_main_content(url_row)  # new_row에 정보를 채워둔다
         data_list.append(new_row)                                         # data_list에 new_row를 추가한다
-        print(f"[본문을 추가했습니다] {new_row}")
+        print("{step 1 종료} 본문을 추가했습니다", new_row[0], new_row[-2])
 
         # {step 2} 댓글들 정보들을 불러오겠습니다
         # new_row 형식 : ['date', 'title', 'url', 'media', 'content', 'is_comment']
-        try:
-            print("{step 2} 댓글들 정보들을 불러오겠습니다")
-            reply_list = cr.get_reply_list(1, url_row['url'])  # 댓글 리스트 soup
-        except Exception as e:
-            status = "[댓글들 정보 추가 : driver 불러오기]"
-            print(f'[ERROR][index : {index}]{status}[error message : {e}]')
-            error_log.append([index, status, e, url_row['title'], url_row['url']])
-            continue
+        print("{step 2 시작} 댓글 정보들을 불러오겠습니다")
+        reply_list = cr.get_reply_list(url_row['url'])  # 댓글 리스트 soup
+        print("{step 2 종료} 댓글 정보들을 불러왔습니다")
 
         # 댓글이 없으면 다음 글로 넘어감
         if not reply_list:
-            print("{step 3} 댓글이 없습니다. 다음 url_row로 넘어갑니다")
+            print("{step 3 종료} 댓글이 없습니다. 다음 url_row로 넘어갑니다")
             continue
         # 댓글이 있으면 댓글 정보를 가져온다
+        print("{step 3 시작} 댓글이 존재합니다. 댓글 정보를 크롤링 하겠습니다")
         for reply in reply_list:
-            print("{step 3} 댓글이 존재합니다. 댓글 정보를 크롤링 하겠습니다")
             try:
                 # 필요없는 항목 넘어가기
                 if cr.is_ignore_reply(reply):
@@ -177,7 +175,7 @@ def get_content_dc(gall_url, keyword):
                 print(f'[ERROR][index : {index}]{status}[error message : {e}]')
                 error_log.append([index, status, e, url_row['title'], url_row['url']])
                 continue
-
+        print("{step 3 종료} 댓글 크롤링을 종료합니다")
     # 4) 끝나면 파일로 저장, 에러 로그 체크
     # 4-a) 결과 csv 파일로 저장
     try:

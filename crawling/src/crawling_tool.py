@@ -13,29 +13,34 @@ header = {
 
 #####################################
 # 본문에서 new_row를 얻어오는 함수
-def get_new_row_from_main_content(time_sleep_sec, url_row):
+def get_new_row_from_main_content(url_row):
     is_comment = 0  # 본문이므로 0
     try:
-        response = requests.get(url_row['url'], headers=header)
-        time.sleep(time_sleep_sec)
+        with requests.Session() as session:
+            response = session.get(url_row['url'], headers=header)
         soup = BeautifulSoup(response.text, "html.parser")
         content = util.preprocess_content_dc(soup.find('div', {"class": "write_div"}).text)
         content = url_row['title'] + " " + content
         new_row = [url_row['date'], url_row['title'], url_row['url'], url_row['media'], content, is_comment]
-    except:
-        new_row = get_new_row_from_main_content(time_sleep_sec, url_row)
+    except Exception as e:
+        print("[오류가 발생하여 반복합니다] ", e)
+        new_row = get_new_row_from_main_content(url_row)
     return new_row
 
 
 #####################################
 # 기능 : url을 받아 reply_list를 리턴합니다
 # 리턴값 : reply_list
-def get_reply_list(time_sleep_sec, url):
-    driver = get_driver()
-    driver.get(url)
-    time.sleep(time_sleep_sec)
-    soup = BeautifulSoup(driver.page_source, "html.parser")
-    reply_list = soup.find_all("li", {"class": "ub-content"})
+def get_reply_list(url):
+    try:
+        driver = get_driver()
+        driver.get(url)
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        reply_list = soup.find_all("li", {"class": "ub-content"})
+        driver.quit()
+    except Exception as e:
+        print("[오류가 발생하여 반복합니다] ", e)
+        reply_list = get_reply_list(url)
     return reply_list
 
 
@@ -113,8 +118,8 @@ def get_url_base(gall_url):
 # 리턴값 : max_num
 def get_max_num(keyword, gall_id, url_base):
     search_url = f"{url_base}/board/lists/?id={gall_id}&s_type=search_subject_memo&s_keyword={keyword}"
-    print(search_url)
-    response = requests.get(search_url, headers=header)
+    with requests.Session() as session:
+        response = session.get(search_url, headers=header)
     soup = BeautifulSoup(response.text, "html.parser")  # 페이지의 soup
     box = soup.select("div.gall_listwrap tr.ub-content")        # 글만 있는 box
     first_content = ''
@@ -136,8 +141,8 @@ def get_max_num(keyword, gall_id, url_base):
 # 리턴값 : max_page(int)
 def get_last_page(url):
     try:
-        response = requests.get(url, headers=header)
-        time.sleep(1)
+        with requests.Session() as session:
+            response = session.get(url, headers=header)
         soup = BeautifulSoup(response.text, "html.parser").find("div", class_="bottom_paging_wrap re")
         filtered_a_tags = [a for a in soup.find_all('a') if not a.find('span', class_='sp_pagingicon')]
         num_button_count = len(filtered_a_tags) + 1    # 숫자 버튼의 개수
@@ -148,6 +153,7 @@ def get_last_page(url):
             last_page = int(last_page)                                              # 맨 마지막 페이지
         else:
             last_page = num_button_count
-    except:
+    except Exception as e:
+        print("[오류가 발생하여 반복합니다] ", e)
         last_page = get_last_page(url)
     return last_page
