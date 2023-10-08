@@ -139,12 +139,22 @@ def is_in_blacklist(input_list, blacklist):
     return any(element in input_list for element in blacklist)
 
 
+##########################################
+# 기능 : 한글 문자열을 유니코드 UTF-8로 인코딩하여 반환합니다
+# 입력 예시 : '에스엠'
+# 리턴값 예시 : '.EC.97.90.EC.8A.A4.EC.97.A0'
+def convert_to_unicode(input_str):
+    return '.' + '.'.join(['{:02X}'.format(byte) for byte in input_str.encode('utf-8')])
+
+
 #########################################################################################################
 # 한국어인지 검사하는 함수
 def is_korean(s):
     return bool(re.fullmatch("[\u3131-\u3163\uAC00-\uD7A3]+", s))
 
 
+
+##################################################
 # 기능 : 입력한 문자열에, blacklist의 원소가 포함되어 있으면 True, 아니면 False를 리턴하는 함수
 def contains_blacklist(str_, blacklist):
     for item in blacklist:
