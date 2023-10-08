@@ -147,10 +147,13 @@ def preprocess_content_dc(text):
         return result   # 전처리 결과값 리턴
 
 
-#####################################
-# input_list의 원소에 blacklist 의 원소 중 하나라도 있으면 True, 아니면 False
-def is_in_blacklist(input_list, blacklist):
-    return any(element in input_list for element in blacklist)
+##################################################
+# 기능 : 입력한 문자열에, blacklist의 원소가 포함되어 있으면 True, 아니면 False를 리턴하는 함수
+def contains_blacklist(str_, blacklist):
+    for item in blacklist:
+        if item in str_:
+            return True
+    return False
 
 
 ##########################################
@@ -165,16 +168,6 @@ def convert_to_unicode(input_str):
 # 한국어인지 검사하는 함수
 def is_korean(s):
     return bool(re.fullmatch("[\u3131-\u3163\uAC00-\uD7A3]+", s))
-
-
-
-##################################################
-# 기능 : 입력한 문자열에, blacklist의 원소가 포함되어 있으면 True, 아니면 False를 리턴하는 함수
-def contains_blacklist(str_, blacklist):
-    for item in blacklist:
-        if item in str_:
-            return True
-    return False
 
 
 # 불용어를 지운다
