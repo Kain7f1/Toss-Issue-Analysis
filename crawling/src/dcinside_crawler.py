@@ -7,12 +7,6 @@ from bs4 import BeautifulSoup
 import crawling_tool as cr
 import utility_module as util
 import pandas as pd
-import requests
-
-
-header = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
-    }
 
 
 ##############################################
@@ -52,20 +46,11 @@ def get_url_dc(gall_url, keyword):
         last_page = cr.get_last_page(temp_url)     # 1만 단위 검색결과의 마지막 페이지
         # 해외주식갤러리처럼 컨텐츠 많을때, 1,2,3,4,5 이렇게 페이징 되어있는거 있음. 이걸 페이지 넘기면서 크롤링
         for page in range(1, last_page+1):
-            try:
-                # [검색결과 페이지 불러오기]
-                print(f"[크롤링 시작][search_pos : {search_pos}][page : {page}/{last_page}]")
-                search_url = f"{url_base}/board/lists/?id={gall_id}&page={page}&search_pos=-{search_pos}&s_type=search_subject_memo&s_keyword={keyword_unicode}"
-                with requests.Session() as session:
-                    response = session.get(search_url, headers=header)
-                soup = BeautifulSoup(response.text, "html.parser")      # 검색 결과 페이지
-                element_list = soup.select("table.gall_list tr.ub-content")     # 한 페이지 전체 글 리스트
-                print(f"[글 개수 : {len(element_list)}]")
-            except Exception as e:
-                status = "[검색결과 페이지 불러오기]"
-                print(f'[error]{status}[error message : {e}]')
-                error_log.append([search_url, status, e])
-                continue
+            # [검색결과 페이지 불러오기]
+            print(f"[크롤링 시작][search_pos : {search_pos}][page : {page}/{last_page}]")
+            search_url = f"{url_base}/board/lists/?id={gall_id}&page={page}&search_pos=-{search_pos}&s_type=search_subject_memo&s_keyword={keyword_unicode}"
+            element_list = cr.get_search_result(search_url)
+            print(f"[글 개수 : {len(element_list)}]")
             # 글 하나씩 뽑아서 크롤링
             for element in element_list:    # element == 글 하나
                 try:

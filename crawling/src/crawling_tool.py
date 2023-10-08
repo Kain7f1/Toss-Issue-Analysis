@@ -6,10 +6,38 @@ from selenium import webdriver
 import datetime
 import utility_module as util
 
-header = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
+# dcinside 봇 차단을 위한 헤더 설정
+header_dc = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36",
+        "Connection" : "keep-alive",
+        "Cache-Control" : "max-age=0",
+        "sec-ch-ua-mobile" : "?0",
+        "DNT" : "1",
+        "Upgrade-Insecure-Requests" : "1",
+        "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Sec-Fetch-Site" : "none",
+        "Sec-Fetch-Mode" : "navigate",
+        "Sec-Fetch-User" : "?1",
+        "Sec-Fetch-Dest" : "document",
+        "Accept-Encoding" : "gzip, deflate, br",
+        "Accept-Language" : "ko-KR,ko;q=0.9"
     }
 
+
+###############################
+# get_search_result()
+# 기능 : 검색결과 페이지 정보를 불러온다
+# 리턴값 : 검색결과의 글 리스트
+def get_search_result(search_url, time_sleep_sec=0):
+    try:
+        with requests.Session() as session:
+            response = session.get(search_url, headers=header_dc)
+        soup = BeautifulSoup(response.text, "html.parser")  # 검색 결과 페이지
+        element_list = soup.select("table.gall_list tr.ub-content")  # 한 페이지 전체 글 리스트
+    except Exception as e:
+        print("[오류가 발생하여 반복합니다] [get_search_result()] ", e)
+        element_list = get_search_result(search_url, 3)
+    return element_list
 
 ###############################
 # get_max_num()
@@ -20,7 +48,7 @@ def get_max_num(keyword, gall_id, url_base, time_sleep_sec=0):
         temp_url = f"{url_base}/board/lists/?id={gall_id}&s_type=search_subject_memo&s_keyword={keyword}"
         print("temp_url = ", temp_url)
         with requests.Session() as session:
-            response = session.get(temp_url, headers=header)
+            response = session.get(temp_url, headers=header_dc)
             time.sleep(time_sleep_sec)
         soup = BeautifulSoup(response.text, "html.parser")  # 페이지의 soup
         box = soup.select("div.gall_listwrap tr.ub-content")        # 글만 있는 box
@@ -46,7 +74,7 @@ def get_new_row_from_main_content(url_row, time_sleep_sec=0):
     is_comment = 0  # 본문이므로 0
     try:
         with requests.Session() as session:
-            response = session.get(url_row['url'], headers=header)
+            response = session.get(url_row['url'], headers=header_dc)
             time.sleep(time_sleep_sec)
         soup = BeautifulSoup(response.text, "html.parser")
         content = util.preprocess_content_dc(soup.find('div', {"class": "write_div"}).text)
@@ -82,7 +110,7 @@ def get_reply_list(url, time_sleep_sec=0):
 def get_last_page(url, time_sleep_sec=0):
     try:
         with requests.Session() as session:
-            response = session.get(url, headers=header)
+            response = session.get(url, headers=header_dc)
             time.sleep(time_sleep_sec)
         soup = BeautifulSoup(response.text, "html.parser").find("div", class_="bottom_paging_wrap re")
         filtered_a_tags = [a for a in soup.find_all('a') if not a.find('span', class_='sp_pagingicon')]
