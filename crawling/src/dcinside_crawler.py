@@ -109,7 +109,7 @@ def get_url_dc(gall_url, keyword, blacklist):
 # 5) 에러로그 체크 및 저장
 #################################
 @util.timer_decorator
-def get_content_dc(gall_url, keyword):
+def get_content_dc(gall_url, keyword, blacklist):
     gall_id = cr.get_gall_id(gall_url)
     url_folder_path = f"./url/{gall_id}"            # 읽어올 폴더 경로 설정
     content_folder_path = f"./content/{gall_id}"    # 저장할 폴더 경로 설정
@@ -131,9 +131,13 @@ def get_content_dc(gall_url, keyword):
 
         # {step 1} 본문 정보 row를 data_list에 추가
         print("{step 1 시작} 본문 정보를 추가하겠습니다")
-        new_row = cr.get_new_row_from_main_content(url_row)  # new_row에 정보를 채워둔다
-        data_list.append(new_row)                                         # data_list에 new_row를 추가한다
-        print("{step 1 종료} 본문을 추가했습니다", new_row[0], new_row[-2])
+        new_row = cr.get_new_row_from_main_content(url_row)  # ['date','title','url','media','content','is_comment']
+        if util.contains_blacklist(new_row[-2], blacklist):
+            print("{step 1~3 종료} content에 blacklist에 해당하는 단어 발견 : ", new_row[-2])
+            continue
+        else:
+            data_list.append(new_row)                                         # data_list에 new_row를 추가한다
+            print("{step 1 종료} 본문을 추가했습니다", new_row[0], new_row[-2])
 
         # {step 2} 댓글들 정보들을 불러오겠습니다
         # new_row 형식 : ['date', 'title', 'url', 'media', 'content', 'is_comment']

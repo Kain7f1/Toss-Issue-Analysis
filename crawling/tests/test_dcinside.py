@@ -7,12 +7,13 @@
 from dcinside_crawler import get_url_dc, get_content_dc
 
 # [설정값]
-keyword = "토스"      # 검색할 키워드
-gall_name = "자동차"   # 갤러리 선택
+keyword = "에스엠"      # 검색할 키워드
+gall_name = "코스피"   # 갤러리 선택
 
 # "keyword" 의 블랙리스트
 blacklist = {
-    "토스": ["토스트", "도리토스", "치토스", "멘토스", "쌜토스", "쎌토스", "샐토스", "셀토스", "키보토스", "프로토스", "토스테론"]
+    "토스": ["토스트", "도리토스", "치토스", "멘토스", "셀토스", "키보토스", "프로토스", "테스토스", "토스테론"],
+    "에스엠": [],
 }
 # "____" 갤러리
 gall_url = {
@@ -31,7 +32,7 @@ gall_url = {
 
 
 # [1. url 크롤링]
-get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])
+# get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])
 
 # [2. content 크롤링]
-# get_content_dc(gall_url[gall_name], keyword)
+get_content_dc(gall_url[gall_name], keyword, blacklist[keyword])
