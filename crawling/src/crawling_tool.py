@@ -25,7 +25,7 @@ def get_new_row_from_main_content(url_row, time_sleep_sec=0):
         new_row = [url_row['date'], url_row['title'], url_row['url'], url_row['media'], content, is_comment]
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_new_row_from_main_content()] ", e)
-        new_row = get_new_row_from_main_content(url_row, 1)
+        new_row = get_new_row_from_main_content(url_row, 3)
     return new_row
 
 
@@ -42,8 +42,33 @@ def get_reply_list(url, time_sleep_sec=0):
         driver.quit()
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_reply_list()] ", e)
-        reply_list = get_reply_list(url, 1)
+        reply_list = get_reply_list(url, 3)
     return reply_list
+
+
+################################
+# get_last_page()
+# 기능 : [dcinside] 갤러리 내에서 검색결과의 마지막 페이지가 몇인지 리턴 (검색한 직후의 url이어야 함)
+# 리턴값 : max_page(int)
+def get_last_page(url, time_sleep_sec=0):
+    try:
+        with requests.Session() as session:
+            response = session.get(url, headers=header)
+            time.sleep(time_sleep_sec)
+        soup = BeautifulSoup(response.text, "html.parser").find("div", class_="bottom_paging_wrap re")
+        filtered_a_tags = [a for a in soup.find_all('a') if not a.find('span', class_='sp_pagingicon')]
+        num_button_count = len(filtered_a_tags) + 1    # 숫자 버튼의 개수
+
+        if num_button_count >= 16:    # 한번에 15 page씩 나와서, page가 16개 이상이면 >> 버튼이 생기면서 a태그가 17개가 된다 / 이때의 페이징 처리
+            last_page_url = soup.find_all("a")[-2]['href']                          # 맨 마지막 페이지로 가는 버튼의 url
+            last_page = re.search(r'page=(\d+)', last_page_url).group(1)     # 정규식으로 page 부분의 숫자만 추출
+            last_page = int(last_page)                                              # 맨 마지막 페이지
+        else:
+            last_page = num_button_count
+    except Exception as e:
+        print("[오류가 발생하여 반복합니다] [get_last_page()] ", e)
+        last_page = get_last_page(url, 3)
+    return last_page
 
 
 #####################################
@@ -146,26 +171,4 @@ def get_max_num(keyword, gall_id, url_base):
     return max_num
 
 
-################################
-# get_last_page()
-# 기능 : [dcinside] 갤러리 내에서 검색결과의 마지막 페이지가 몇인지 리턴 (검색한 직후의 url이어야 함)
-# 리턴값 : max_page(int)
-def get_last_page(url, time_sleep_sec=0):
-    try:
-        with requests.Session() as session:
-            response = session.get(url, headers=header)
-            time.sleep(time_sleep_sec)
-        soup = BeautifulSoup(response.text, "html.parser").find("div", class_="bottom_paging_wrap re")
-        filtered_a_tags = [a for a in soup.find_all('a') if not a.find('span', class_='sp_pagingicon')]
-        num_button_count = len(filtered_a_tags) + 1    # 숫자 버튼의 개수
 
-        if num_button_count >= 16:    # 한번에 15 page씩 나와서, page가 16개 이상이면 >> 버튼이 생기면서 a태그가 17개가 된다 / 이때의 페이징 처리
-            last_page_url = soup.find_all("a")[-2]['href']                          # 맨 마지막 페이지로 가는 버튼의 url
-            last_page = re.search(r'page=(\d+)', last_page_url).group(1)     # 정규식으로 page 부분의 숫자만 추출
-            last_page = int(last_page)                                              # 맨 마지막 페이지
-        else:
-            last_page = num_button_count
-    except Exception as e:
-        print("[오류가 발생하여 반복합니다] [get_last_page()] ", e)
-        last_page = get_last_page(url, 1)
-    return last_page
