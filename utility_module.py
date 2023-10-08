@@ -1,7 +1,21 @@
-
 import pandas as pd
 import os
 import re
+import time
+
+
+#####################################
+# 기능 : 함수의 실행 시간을 재는 데코레이터
+# 사용법 : @util.timer_decorator 를 함수 정의할 때 함수명 윗줄에 적는다
+def timer_decorator(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f"{func.__name__} 함수의 실행 시간은 {elapsed_time:.2f} 초 입니다")
+        return result
+    return wrapper
 
 
 #####################################
