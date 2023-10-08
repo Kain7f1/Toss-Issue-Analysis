@@ -180,6 +180,7 @@ def get_content_dc(gall_url, keyword):
     # 4) 끝나면 파일로 저장, 에러 로그 체크
     # 4-a) 결과 csv 파일로 저장
     try:
+        print(f"[{len(data_list)}개의 url 정보가 저장되었습니다]")
         df_result = pd.DataFrame(data_list, columns=['date', 'title', 'url', 'media', 'content', 'is_comment'])
         util.save_file(df_result, content_folder_path, f"{content_file_name}.csv")
     except Exception as e:
