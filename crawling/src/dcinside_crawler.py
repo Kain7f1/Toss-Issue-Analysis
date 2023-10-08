@@ -7,12 +7,6 @@ from bs4 import BeautifulSoup
 import crawling_tool as cr
 import utility_module as util
 import pandas as pd
-import requests
-
-
-header = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
-    }
 
 
 ##############################################
@@ -27,11 +21,11 @@ def get_url_dc(gall_url, keyword):
     try:
         keyword_unicode = util.convert_to_unicode(keyword)          # 입력받은 키워드를 유니코드로 변환한다
         gall_id = cr.get_gall_id(gall_url)                   # 갤러리 id
+        print("gall_id : ", gall_id)
         url_base = cr.get_url_base(gall_url)                 # "https" 부터 "board/" 이전까지의 url 부분 (major갤, minor갤, mini갤)
-        max_num = cr.get_max_num(keyword, gall_id, url_base)   # 검색결과 중, 가장 큰 글번호 10000단위로 올림한 값/10000
-        print(url_base)
-        print(gall_id)
-        print(max_num)
+        print("url_base : ", url_base)
+        max_num = cr.get_max_num(keyword_unicode, gall_id, url_base)   # 검색결과 중, 가장 큰 글번호 10000단위로 올림한 값/10000
+        print("max_num : ", max_num)
         folder_path = f"./url/{gall_id}"        # 저장할 폴더 경로 설정
         util.create_folder(folder_path)         # 폴더 만들기
         error_log = []                          # 에러 로그 저장
@@ -52,20 +46,11 @@ def get_url_dc(gall_url, keyword):
         last_page = cr.get_last_page(temp_url)     # 1만 단위 검색결과의 마지막 페이지
         # 해외주식갤러리처럼 컨텐츠 많을때, 1,2,3,4,5 이렇게 페이징 되어있는거 있음. 이걸 페이지 넘기면서 크롤링
         for page in range(1, last_page+1):
-            try:
-                # [검색결과 페이지 불러오기]
-                print(f"[크롤링 시작][search_pos : {search_pos}][page : {page}/{last_page}]")
-                search_url = f"{url_base}/board/lists/?id={gall_id}&page={page}&search_pos=-{search_pos}&s_type=search_subject_memo&s_keyword={keyword_unicode}"
-                with requests.Session() as session:
-                    response = session.get(search_url, headers=header)
-                soup = BeautifulSoup(response.text, "html.parser")      # 검색 결과 페이지
-                element_list = soup.select("table.gall_list tr.ub-content")     # 한 페이지 전체 글 리스트
-                print(f"[글 개수 : {len(element_list)}]")
-            except Exception as e:
-                status = "[검색결과 페이지 불러오기]"
-                print(f'[error]{status}[error message : {e}]')
-                error_log.append([search_url, status, e])
-                continue
+            # [검색결과 페이지 불러오기]
+            print(f"[크롤링 시작][search_pos : {search_pos}][page : {page}/{last_page}]")
+            search_url = f"{url_base}/board/lists/?id={gall_id}&page={page}&search_pos=-{search_pos}&s_type=search_subject_memo&s_keyword={keyword_unicode}"
+            element_list = cr.get_search_result(search_url)
+            print(f"[글 개수 : {len(element_list)}]")
             # 글 하나씩 뽑아서 크롤링
             for element in element_list:    # element == 글 하나
                 try:
@@ -87,6 +72,7 @@ def get_url_dc(gall_url, keyword):
 
     # 2. 파일로 저장
     try:
+        print(f"[{len(data_list)}개의 url 정보가 저장되었습니다]")
         df_result = pd.DataFrame(data_list, columns=['date', 'title', 'url', 'media'])
         util.save_file(df_result, folder_path, f"{file_name}.csv")
     except Exception as e:
@@ -179,6 +165,7 @@ def get_content_dc(gall_url, keyword):
     # 4) 끝나면 파일로 저장, 에러 로그 체크
     # 4-a) 결과 csv 파일로 저장
     try:
+        print(f"[{len(data_list)}개의 url 정보가 저장되었습니다]")
         df_result = pd.DataFrame(data_list, columns=['date', 'title', 'url', 'media', 'content', 'is_comment'])
         util.save_file(df_result, content_folder_path, f"{content_file_name}.csv")
     except Exception as e:

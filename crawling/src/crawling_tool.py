@@ -1,46 +1,152 @@
 import re
+import time
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import datetime
 import utility_module as util
 
-header = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
+# dcinside 봇 차단을 위한 헤더 설정
+header_dc = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36",
+        "Connection" : "keep-alive",
+        "Cache-Control" : "max-age=0",
+        "sec-ch-ua-mobile" : "?0",
+        "DNT" : "1",
+        "Upgrade-Insecure-Requests" : "1",
+        "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Sec-Fetch-Site" : "none",
+        "Sec-Fetch-Mode" : "navigate",
+        "Sec-Fetch-User" : "?1",
+        "Sec-Fetch-Dest" : "document",
+        "Accept-Encoding" : "gzip, deflate, br",
+        "Accept-Language" : "ko-KR,ko;q=0.9"
     }
+
+
+###############################
+# get_search_result()
+# 기능 : 검색결과 페이지 정보를 불러온다
+# 리턴값 : 검색결과의 글 리스트
+def get_search_result(search_url, time_sleep_sec=0):
+    try:
+        with requests.Session() as session:
+            response = session.get(search_url, headers=header_dc)
+        soup = BeautifulSoup(response.text, "html.parser")  # 검색 결과 페이지
+        element_list = soup.select("table.gall_list tr.ub-content")  # 한 페이지 전체 글 리스트
+    except Exception as e:
+        print("[오류가 발생하여 반복합니다] [get_search_result()] ", e)
+        element_list = get_search_result(search_url, 3)
+    return element_list
+
+###############################
+# get_max_num()
+# 기능 : 검색결과 중 가장 큰 글번호를 구하여 리턴한다
+# 리턴값 : max_num
+def get_max_num(keyword, gall_id, url_base, time_sleep_sec=0):
+    try:
+        temp_url = f"{url_base}/board/lists/?id={gall_id}&s_type=search_subject_memo&s_keyword={keyword}"
+        print("temp_url = ", temp_url)
+        with requests.Session() as session:
+            response = session.get(temp_url, headers=header_dc)
+            time.sleep(time_sleep_sec)
+        soup = BeautifulSoup(response.text, "html.parser")  # 페이지의 soup
+        box = soup.select("div.gall_listwrap tr.ub-content")        # 글만 있는 box
+        first_content = ''
+        # 검색 범위를 정하는 작업
+        for content in box:
+            # 광고는 제거한다 : 광고글은 글쓴이가 "운영자"이다
+            if content.find('td', class_='gall_writer').get_text() == "운영자":
+                continue
+            # 광고를 제외한 가장 첫번째 글
+            first_content = content.select_one("td.gall_num").get_text()
+            break
+        max_num = int(int(first_content)/10000+1)*10000      # max_num  의 글번호까지 검색한다
+    except Exception as e:
+        print("[오류가 발생하여 반복합니다] [get_max_num()] ", e)
+        max_num = get_max_num(keyword, gall_id, url_base, 3)
+    return max_num
 
 
 #####################################
 # 본문에서 new_row를 얻어오는 함수
-def get_new_row_from_main_content(url_row):
+def get_new_row_from_main_content(url_row, time_sleep_sec=0):
     is_comment = 0  # 본문이므로 0
     try:
         with requests.Session() as session:
-            response = session.get(url_row['url'], headers=header)
+            response = session.get(url_row['url'], headers=header_dc)
+            time.sleep(time_sleep_sec)
         soup = BeautifulSoup(response.text, "html.parser")
         content = util.preprocess_content_dc(soup.find('div', {"class": "write_div"}).text)
         content = url_row['title'] + " " + content
         new_row = [url_row['date'], url_row['title'], url_row['url'], url_row['media'], content, is_comment]
     except Exception as e:
-        print("[오류가 발생하여 반복합니다] ", e)
-        new_row = get_new_row_from_main_content(url_row)
+        print("[오류가 발생하여 반복합니다] [get_new_row_from_main_content()] ", e)
+        new_row = get_new_row_from_main_content(url_row, 3)
     return new_row
 
 
 #####################################
 # 기능 : url을 받아 reply_list를 리턴합니다
 # 리턴값 : reply_list
-def get_reply_list(url):
+def get_reply_list(url, time_sleep_sec=0):
     try:
         driver = get_driver()
         driver.get(url)
+        time.sleep(time_sleep_sec)
         soup = BeautifulSoup(driver.page_source, "html.parser")
         reply_list = soup.find_all("li", {"class": "ub-content"})
         driver.quit()
     except Exception as e:
-        print("[오류가 발생하여 반복합니다] ", e)
-        reply_list = get_reply_list(url)
+        print("[오류가 발생하여 반복합니다] [get_reply_list()] ", e)
+        reply_list = get_reply_list(url, 3)
     return reply_list
+
+
+################################
+# get_last_page()
+# 기능 : [dcinside] 갤러리 내에서 검색결과의 마지막 페이지가 몇인지 리턴 (검색한 직후의 url이어야 함)
+# 리턴값 : max_page(int)
+def get_last_page(url, time_sleep_sec=0):
+    try:
+        with requests.Session() as session:
+            response = session.get(url, headers=header_dc)
+            time.sleep(time_sleep_sec)
+        soup = BeautifulSoup(response.text, "html.parser").find("div", class_="bottom_paging_wrap re")
+        filtered_a_tags = [a for a in soup.find_all('a') if not a.find('span', class_='sp_pagingicon')]
+        num_button_count = len(filtered_a_tags) + 1    # 숫자 버튼의 개수
+
+        if num_button_count >= 16:    # 한번에 15 page씩 나와서, page가 16개 이상이면 >> 버튼이 생기면서 a태그가 17개가 된다 / 이때의 페이징 처리
+            last_page_url = soup.find_all("a")[-2]['href']                          # 맨 마지막 페이지로 가는 버튼의 url
+            last_page = re.search(r'page=(\d+)', last_page_url).group(1)     # 정규식으로 page 부분의 숫자만 추출
+            last_page = int(last_page)                                              # 맨 마지막 페이지
+        else:
+            last_page = num_button_count
+    except Exception as e:
+        print("[오류가 발생하여 반복합니다] [get_last_page()] ", e)
+        last_page = get_last_page(url, 3)
+    return last_page
+
+
+##############################
+# get_gall_id()
+# 기능 : gall_url을 받아 gall_id를 리턴한다
+def get_gall_id(gall_url):
+    return re.search(r'id=([\w_]+)', gall_url).group(1)
+
+
+##############################
+# get_gall_type()
+# 기능 : 메이저갤러리인지 마이너갤러리인지 미니갤러리인지 판단한다
+# 리턴값 : 메이저갤러리('major'), 마이너갤러리('minor'), 미니갤러리('mini')
+def get_url_base(gall_url):
+    if "mgallery" in gall_url:
+        url_base = "https://gall.dcinside.com/mgallery"
+    elif "mini" in gall_url:
+        url_base = "https://gall.dcinside.com/mini"
+    else:
+        url_base = "https://gall.dcinside.com"
+    return url_base
 
 
 #####################################
@@ -98,69 +204,10 @@ def get_driver():
     return driver
 
 
-##############################
-# get_gall_id()
-# 기능 : gall_url을 받아 gall_id를 리턴한다
-def get_gall_id(gall_url):
-    return re.search(r'id=([\w_]+)', gall_url).group(1)
 
 
-##############################
-# get_gall_type()
-# 기능 : 메이저갤러리인지 마이너갤러리인지 미니갤러리인지 판단한다
-# 리턴값 : 메이저갤러리('major'), 마이너갤러리('minor'), 미니갤러리('mini')
-def get_url_base(gall_url):
-    if "mgallery" in gall_url:
-        url_base = "https://gall.dcinside.com/mgallery"
-    elif "mini" in gall_url:
-        url_base = "https://gall.dcinside.com/mini"
-    else:
-        url_base = "https://gall.dcinside.com"
-    return url_base
 
 
-###############################
-# get_max_num()
-# 기능 : 검색결과 중 가장 큰 글번호를 구하여 리턴한다
-# 리턴값 : max_num
-def get_max_num(keyword, gall_id, url_base):
-    search_url = f"{url_base}/board/lists/?id={gall_id}&s_type=search_subject_memo&s_keyword={keyword}"
-    with requests.Session() as session:
-        response = session.get(search_url, headers=header)
-    soup = BeautifulSoup(response.text, "html.parser")  # 페이지의 soup
-    box = soup.select("div.gall_listwrap tr.ub-content")        # 글만 있는 box
-    first_content = ''
-    # 검색 범위를 정하는 작업
-    for content in box:
-        # 광고는 제거한다 : 광고글은 글쓴이가 "운영자"이다
-        if content.find('td', class_='gall_writer').get_text() == "운영자":
-            continue
-        # 광고를 제외한 가장 첫번째 글
-        first_content = content.select_one("td.gall_num").get_text()
-        break
-    max_num = int(int(first_content)/10000+1)*10000      # max_num  의 글번호까지 검색한다
-    return max_num
 
 
-################################
-# get_last_page()
-# 기능 : [dcinside] 갤러리 내에서 검색결과의 마지막 페이지가 몇인지 리턴 (검색한 직후의 url이어야 함)
-# 리턴값 : max_page(int)
-def get_last_page(url):
-    try:
-        with requests.Session() as session:
-            response = session.get(url, headers=header)
-        soup = BeautifulSoup(response.text, "html.parser").find("div", class_="bottom_paging_wrap re")
-        filtered_a_tags = [a for a in soup.find_all('a') if not a.find('span', class_='sp_pagingicon')]
-        num_button_count = len(filtered_a_tags) + 1    # 숫자 버튼의 개수
 
-        if num_button_count >= 16:    # 한번에 15 page씩 나와서, page가 16개 이상이면 >> 버튼이 생기면서 a태그가 17개가 된다 / 이때의 페이징 처리
-            last_page_url = soup.find_all("a")[-2]['href']                          # 맨 마지막 페이지로 가는 버튼의 url
-            last_page = re.search(r'page=(\d+)', last_page_url).group(1)     # 정규식으로 page 부분의 숫자만 추출
-            last_page = int(last_page)                                              # 맨 마지막 페이지
-        else:
-            last_page = num_button_count
-    except Exception as e:
-        print("[오류가 발생하여 반복합니다] ", e)
-        last_page = get_last_page(url)
-    return last_page

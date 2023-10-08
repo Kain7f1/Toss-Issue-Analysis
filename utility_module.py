@@ -103,7 +103,7 @@ def error_check(error_log, folder_path, file_name):
         df_error = pd.DataFrame(error_log)   # df 생성
         error_file_path = os.path.join(folder_path, f"{file_name}_error.csv")
         df_error.to_csv(error_file_path, encoding='utf-8', index=False)
-        print("[에러 발생 로그를 파일로 저장함]")
+        print(f"[총 {len(error_log)}개의 에러 로그가 파일로 저장되었습니다]")
     else:
         print("[에러 없음]")
 
