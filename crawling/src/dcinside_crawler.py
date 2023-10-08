@@ -87,6 +87,7 @@ def get_url_dc(gall_url, keyword):
 
     # 2. 파일로 저장
     try:
+        print(f"[{len(data_list)}개의 url 정보가 저장되었습니다]")
         df_result = pd.DataFrame(data_list, columns=['date', 'title', 'url', 'media'])
         util.save_file(df_result, folder_path, f"{file_name}.csv")
     except Exception as e:
