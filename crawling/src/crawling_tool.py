@@ -13,34 +13,36 @@ header = {
 
 #####################################
 # 본문에서 new_row를 얻어오는 함수
-def get_new_row_from_main_content(url_row):
+def get_new_row_from_main_content(url_row, time_sleep_sec=0):
     is_comment = 0  # 본문이므로 0
     try:
         with requests.Session() as session:
             response = session.get(url_row['url'], headers=header)
+            time.sleep(time_sleep_sec)
         soup = BeautifulSoup(response.text, "html.parser")
         content = util.preprocess_content_dc(soup.find('div', {"class": "write_div"}).text)
         content = url_row['title'] + " " + content
         new_row = [url_row['date'], url_row['title'], url_row['url'], url_row['media'], content, is_comment]
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_new_row_from_main_content()] ", e)
-        new_row = get_new_row_from_main_content(url_row)
+        new_row = get_new_row_from_main_content(url_row, 1)
     return new_row
 
 
 #####################################
 # 기능 : url을 받아 reply_list를 리턴합니다
 # 리턴값 : reply_list
-def get_reply_list(url):
+def get_reply_list(url, time_sleep_sec=0):
     try:
         driver = get_driver()
         driver.get(url)
+        time.sleep(time_sleep_sec)
         soup = BeautifulSoup(driver.page_source, "html.parser")
         reply_list = soup.find_all("li", {"class": "ub-content"})
         driver.quit()
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_reply_list()] ", e)
-        reply_list = get_reply_list(url)
+        reply_list = get_reply_list(url, 1)
     return reply_list
 
 
