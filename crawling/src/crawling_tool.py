@@ -1,4 +1,5 @@
 import re
+import time
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -147,10 +148,11 @@ def get_max_num(keyword, gall_id, url_base):
 # get_last_page()
 # 기능 : [dcinside] 갤러리 내에서 검색결과의 마지막 페이지가 몇인지 리턴 (검색한 직후의 url이어야 함)
 # 리턴값 : max_page(int)
-def get_last_page(url):
+def get_last_page(url, time_sleep_sec=0):
     try:
         with requests.Session() as session:
             response = session.get(url, headers=header)
+            time.sleep(time_sleep_sec)
         soup = BeautifulSoup(response.text, "html.parser").find("div", class_="bottom_paging_wrap re")
         filtered_a_tags = [a for a in soup.find_all('a') if not a.find('span', class_='sp_pagingicon')]
         num_button_count = len(filtered_a_tags) + 1    # 숫자 버튼의 개수
@@ -163,5 +165,5 @@ def get_last_page(url):
             last_page = num_button_count
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_last_page()] ", e)
-        last_page = get_last_page(url)
+        last_page = get_last_page(url, 1)
     return last_page

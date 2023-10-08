@@ -7,7 +7,7 @@
 from dcinside_crawler import get_url_dc, get_content_dc
 
 # 설정값
-keyword = "에스엠"
+keyword = "에코"
 gall_name = "코스피"
 # blacklist = ["토스트", "도리토스", "치토스", "멘토스", "셀토스", "키보토스", "프로토스", "테스토스테론"]
 gall_url = {
