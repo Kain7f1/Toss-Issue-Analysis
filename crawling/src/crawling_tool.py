@@ -11,6 +11,35 @@ header = {
     }
 
 
+###############################
+# get_max_num()
+# 기능 : 검색결과 중 가장 큰 글번호를 구하여 리턴한다
+# 리턴값 : max_num
+def get_max_num(keyword, gall_id, url_base, time_sleep_sec=0):
+    try:
+        temp_url = f"{url_base}/board/lists/?id={gall_id}&s_type=search_subject_memo&s_keyword={keyword}"
+        print("temp_url = ", temp_url)
+        with requests.Session() as session:
+            response = session.get(temp_url, headers=header)
+            time.sleep(time_sleep_sec)
+        soup = BeautifulSoup(response.text, "html.parser")  # 페이지의 soup
+        box = soup.select("div.gall_listwrap tr.ub-content")        # 글만 있는 box
+        first_content = ''
+        # 검색 범위를 정하는 작업
+        for content in box:
+            # 광고는 제거한다 : 광고글은 글쓴이가 "운영자"이다
+            if content.find('td', class_='gall_writer').get_text() == "운영자":
+                continue
+            # 광고를 제외한 가장 첫번째 글
+            first_content = content.select_one("td.gall_num").get_text()
+            break
+        max_num = int(int(first_content)/10000+1)*10000      # max_num  의 글번호까지 검색한다
+    except Exception as e:
+        print("[오류가 발생하여 반복합니다] [get_max_num()] ", e)
+        max_num = get_max_num(keyword, gall_id, url_base, 3)
+    return max_num
+
+
 #####################################
 # 본문에서 new_row를 얻어오는 함수
 def get_new_row_from_main_content(url_row, time_sleep_sec=0):
@@ -71,6 +100,27 @@ def get_last_page(url, time_sleep_sec=0):
     return last_page
 
 
+##############################
+# get_gall_id()
+# 기능 : gall_url을 받아 gall_id를 리턴한다
+def get_gall_id(gall_url):
+    return re.search(r'id=([\w_]+)', gall_url).group(1)
+
+
+##############################
+# get_gall_type()
+# 기능 : 메이저갤러리인지 마이너갤러리인지 미니갤러리인지 판단한다
+# 리턴값 : 메이저갤러리('major'), 마이너갤러리('minor'), 미니갤러리('mini')
+def get_url_base(gall_url):
+    if "mgallery" in gall_url:
+        url_base = "https://gall.dcinside.com/mgallery"
+    elif "mini" in gall_url:
+        url_base = "https://gall.dcinside.com/mini"
+    else:
+        url_base = "https://gall.dcinside.com"
+    return url_base
+
+
 #####################################
 # 기능 : 댓글 html코드를 받아서, 댓글의 date를 리턴합니다
 # 리턴값 : 2023-10-06 형식의 문자열
@@ -126,49 +176,10 @@ def get_driver():
     return driver
 
 
-##############################
-# get_gall_id()
-# 기능 : gall_url을 받아 gall_id를 리턴한다
-def get_gall_id(gall_url):
-    return re.search(r'id=([\w_]+)', gall_url).group(1)
 
 
-##############################
-# get_gall_type()
-# 기능 : 메이저갤러리인지 마이너갤러리인지 미니갤러리인지 판단한다
-# 리턴값 : 메이저갤러리('major'), 마이너갤러리('minor'), 미니갤러리('mini')
-def get_url_base(gall_url):
-    if "mgallery" in gall_url:
-        url_base = "https://gall.dcinside.com/mgallery"
-    elif "mini" in gall_url:
-        url_base = "https://gall.dcinside.com/mini"
-    else:
-        url_base = "https://gall.dcinside.com"
-    return url_base
 
 
-###############################
-# get_max_num()
-# 기능 : 검색결과 중 가장 큰 글번호를 구하여 리턴한다
-# 리턴값 : max_num
-def get_max_num(keyword, gall_id, url_base):
-    temp_url = f"{url_base}/board/lists/?id={gall_id}&s_type=search_subject_memo&s_keyword={keyword}"
-    print("temp_url = ", temp_url)
-    with requests.Session() as session:
-        response = session.get(temp_url, headers=header)
-    soup = BeautifulSoup(response.text, "html.parser")  # 페이지의 soup
-    box = soup.select("div.gall_listwrap tr.ub-content")        # 글만 있는 box
-    first_content = ''
-    # 검색 범위를 정하는 작업
-    for content in box:
-        # 광고는 제거한다 : 광고글은 글쓴이가 "운영자"이다
-        if content.find('td', class_='gall_writer').get_text() == "운영자":
-            continue
-        # 광고를 제외한 가장 첫번째 글
-        first_content = content.select_one("td.gall_num").get_text()
-        break
-    max_num = int(int(first_content)/10000+1)*10000      # max_num  의 글번호까지 검색한다
-    return max_num
 
 
 
