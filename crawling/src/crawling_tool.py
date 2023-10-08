@@ -22,7 +22,7 @@ def get_new_row_from_main_content(url_row):
         content = url_row['title'] + " " + content
         new_row = [url_row['date'], url_row['title'], url_row['url'], url_row['media'], content, is_comment]
     except Exception as e:
-        print("[오류가 발생하여 반복합니다] ", e)
+        print("[오류가 발생하여 반복합니다] [get_new_row_from_main_content()] ", e)
         new_row = get_new_row_from_main_content(url_row)
     return new_row
 
@@ -38,7 +38,7 @@ def get_reply_list(url):
         reply_list = soup.find_all("li", {"class": "ub-content"})
         driver.quit()
     except Exception as e:
-        print("[오류가 발생하여 반복합니다] ", e)
+        print("[오류가 발생하여 반복합니다] [get_reply_list()] ", e)
         reply_list = get_reply_list(url)
     return reply_list
 
@@ -124,9 +124,10 @@ def get_url_base(gall_url):
 # 기능 : 검색결과 중 가장 큰 글번호를 구하여 리턴한다
 # 리턴값 : max_num
 def get_max_num(keyword, gall_id, url_base):
-    search_url = f"{url_base}/board/lists/?id={gall_id}&s_type=search_subject_memo&s_keyword={keyword}"
+    temp_url = f"{url_base}/board/lists/?id={gall_id}&s_type=search_subject_memo&s_keyword={keyword}"
+    print("temp_url = ", temp_url)
     with requests.Session() as session:
-        response = session.get(search_url, headers=header)
+        response = session.get(temp_url, headers=header)
     soup = BeautifulSoup(response.text, "html.parser")  # 페이지의 soup
     box = soup.select("div.gall_listwrap tr.ub-content")        # 글만 있는 box
     first_content = ''
@@ -161,6 +162,6 @@ def get_last_page(url):
         else:
             last_page = num_button_count
     except Exception as e:
-        print("[오류가 발생하여 반복합니다] ", e)
+        print("[오류가 발생하여 반복합니다] [get_last_page()] ", e)
         last_page = get_last_page(url)
     return last_page

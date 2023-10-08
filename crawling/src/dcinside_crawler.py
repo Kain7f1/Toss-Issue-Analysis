@@ -27,11 +27,11 @@ def get_url_dc(gall_url, keyword):
     try:
         keyword_unicode = util.convert_to_unicode(keyword)          # 입력받은 키워드를 유니코드로 변환한다
         gall_id = cr.get_gall_id(gall_url)                   # 갤러리 id
+        print("gall_id : ", gall_id)
         url_base = cr.get_url_base(gall_url)                 # "https" 부터 "board/" 이전까지의 url 부분 (major갤, minor갤, mini갤)
-        max_num = cr.get_max_num(keyword, gall_id, url_base)   # 검색결과 중, 가장 큰 글번호 10000단위로 올림한 값/10000
-        print(url_base)
-        print(gall_id)
-        print(max_num)
+        print("url_base : ", url_base)
+        max_num = cr.get_max_num(keyword_unicode, gall_id, url_base)   # 검색결과 중, 가장 큰 글번호 10000단위로 올림한 값/10000
+        print("max_num : ", max_num)
         folder_path = f"./url/{gall_id}"        # 저장할 폴더 경로 설정
         util.create_folder(folder_path)         # 폴더 만들기
         error_log = []                          # 에러 로그 저장

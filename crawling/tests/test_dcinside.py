@@ -7,8 +7,8 @@
 from dcinside_crawler import get_url_dc, get_content_dc
 
 # 설정값
-keyword = "에코프로"
-gall_name = "해외주식"
+keyword = "에스엠"
+gall_name = "코스피"
 # blacklist = ["토스트", "도리토스", "치토스", "멘토스", "셀토스", "키보토스", "프로토스", "테스토스테론"]
 gall_url = {
     "미국주식": "https://gall.dcinside.com/mgallery/board/lists?id=stockus",
@@ -25,7 +25,7 @@ gall_url = {
 
 
 # [1. url 크롤링]
-# get_url_dc(gall_url[gall_name], keyword)
+get_url_dc(gall_url[gall_name], keyword)
 
 # [2. content 크롤링]
-get_content_dc(gall_url[gall_name], keyword)
+# get_content_dc(gall_url[gall_name], keyword)
