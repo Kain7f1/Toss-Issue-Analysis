@@ -82,7 +82,7 @@ def get_driver():
     # driver 설정
     options = webdriver.ChromeOptions()                 # (옵션)
     # options.add_argument("--start-maximized")         # 창이 최대화 되도록 열리게 한다.
-    options.add_argument("headless")                  # 창이 없이 크롬이 실행이 되도록 만든다
+    options.add_argument("--headless")                  # 창이 없이 크롬이 실행이 되도록 만든다
     options.add_argument("disable-infobars")            # 안내바가 없이 열리게 한다.
     options.add_argument("disable-gpu")                 # 크롤링 실행시 GPU를 사용하지 않게 한다.
     options.add_argument("--disable-dev-shm-usage")     # 공유메모리를 사용하지 않는다
