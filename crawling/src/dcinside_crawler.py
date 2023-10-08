@@ -16,7 +16,7 @@ import pandas as pd
 # 생성 파일 : url_dcinside_{gall_id}.csv
 # columns = ['date', 'title', 'url', 'media']
 @util.timer_decorator
-def get_url_dc(gall_url, keyword):
+def get_url_dc(gall_url, keyword, blacklist):
     # 0. 기본값 세팅 단계
     try:
         keyword_unicode = util.convert_to_unicode(keyword)          # 입력받은 키워드를 유니코드로 변환한다
@@ -60,6 +60,9 @@ def get_url_dc(gall_url, keyword):
                     date = element.find('td', class_='gall_date')['title'][:10]                             # date 가져오기
                     title = element.find('td', class_='gall_tit ub-word').find('a').get_text(strip=True)    # title 가져오기
                     title = util.preprocess_title(title)    # 전처리
+                    if util.contains_blacklist(title, blacklist):
+                        print("제목에 blacklist에 해당하는 단어 발견 : ", title)
+                        continue    # blacklist 포함 단어가 있으면 무시하고 넘어가기
                     url = "https://gall.dcinside.com" + element.select_one("td.gall_tit a")['href']
                     new_row = [date, title, url, gall_id]
                     data_list.append(new_row)  # data_list에 크롤링한 정보 저장
