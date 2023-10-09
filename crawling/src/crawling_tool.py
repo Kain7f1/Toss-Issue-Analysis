@@ -73,10 +73,14 @@ def get_max_num(keyword, gall_id, url_base, time_sleep=0):
 
 
 #####################################
-def get_new_row_from_search_result(element, gall_id, blacklist):
+def get_new_row_from_search_result(element, gall_id, blacklist, error_count=0):
     new_row = []
     is_continue = False     # is_continue가 True면 이 함수를 사용하는 반복문을 탈출하도록 할 것입니다
     try:
+        if error_count >= 3:    # 3번 반복해도 실패하면 넘어가기
+            print("에러가 3번 발생해서 스킵합니다. 함수 : get_new_row_from_search_result()")
+            is_continue = True
+            return is_continue, new_row  # 넘어가기
         if element.find('td', class_='gall_writer').get_text() == "운영자":  # 광고글은 글쓴이가 "운영자"
             print("광고글입니다. 다음글로 넘어갑니다")
             is_continue = True              # 페이지마다 광고글 처리하기
@@ -92,7 +96,7 @@ def get_new_row_from_search_result(element, gall_id, blacklist):
         new_row = [date, title, url, gall_id]
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_new_row_from_search_result()] ", e)
-        is_continue, new_row = get_new_row_from_search_result(element, gall_id, blacklist)
+        is_continue, new_row = get_new_row_from_search_result(element, gall_id, blacklist, error_count+1)
     return is_continue, new_row
 
 #####################################
