@@ -36,7 +36,7 @@ def get_search_result(search_url, time_sleep_sec=0):
         element_list = soup.select("table.gall_list tr.ub-content")  # 한 페이지 전체 글 리스트
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_search_result()] ", e)
-        element_list = get_search_result(search_url, 3)
+        element_list = get_search_result(search_url, time_sleep_sec+2)
     return element_list
 
 ###############################
@@ -64,7 +64,7 @@ def get_max_num(keyword, gall_id, url_base, time_sleep_sec=0):
         max_num = int(int(first_content)/10000+1)*10000      # max_num  의 글번호까지 검색한다
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_max_num()] ", e)
-        max_num = get_max_num(keyword, gall_id, url_base, 3)
+        max_num = get_max_num(keyword, gall_id, url_base, time_sleep_sec+2)
     return max_num
 
 
@@ -82,7 +82,7 @@ def get_new_row_from_main_content(url_row, time_sleep_sec=0):
         new_row = [url_row['date'], url_row['title'], url_row['url'], url_row['media'], content, is_comment]
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_new_row_from_main_content()] ", e)
-        new_row = get_new_row_from_main_content(url_row, 3)
+        new_row = get_new_row_from_main_content(url_row, time_sleep_sec+2)
     return new_row
 
 
@@ -99,7 +99,7 @@ def get_reply_list(url, time_sleep_sec=0):
         driver.quit()
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_reply_list()] ", e)
-        reply_list = get_reply_list(url, 3)
+        reply_list = get_reply_list(url, time_sleep_sec+2)
     return reply_list
 
 
@@ -124,7 +124,7 @@ def get_last_page(url, time_sleep_sec=0):
             last_page = num_button_count
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_last_page()] ", e)
-        last_page = get_last_page(url, 3)
+        last_page = get_last_page(url, time_sleep_sec+2)
     return last_page
 
 
