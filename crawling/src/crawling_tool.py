@@ -48,6 +48,7 @@ def get_search_result(search_url, time_sleep=0):
 # 기능 : 검색결과 중 가장 큰 글번호를 구하여 리턴한다
 # 리턴값 : max_num
 def get_max_num(gall_url, gall_id, time_sleep=0):
+    gall_type = get_gall_type(gall_url)     # "minor" or "mini" or "major"
     try:
         with requests.Session() as session:
             response = session.get(gall_url, headers=header_dc)
@@ -58,9 +59,14 @@ def get_max_num(gall_url, gall_id, time_sleep=0):
         # 검색 범위를 정하는 작업
         for content in box:
             # 광고, 공지는 제거한다
-            gall_subject = content.find('td', class_='gall_subject').get_text()
-            if gall_subject in ["설문", "AD", "공지"]:
-                continue
+            if gall_type == "major":    # 메이저 갤러리
+                gall_num = content.find('td', class_='gall_num').get_text()
+                if gall_num in ["설문", "AD", "공지"]:
+                    continue
+            else:   # 마이너, 미니 갤러리
+                gall_subject = content.find('td', class_='gall_subject').get_text()
+                if gall_subject in ["설문", "AD", "공지"]:
+                    continue
             # 광고, 공지를 제외한 가장 첫번째 글
             first_content = content.select_one("td.gall_num").get_text()
             break
@@ -165,16 +171,30 @@ def get_gall_id(gall_url):
     return re.search(r'id=([\w_]+)', gall_url).group(1)
 
 
-##############################
+#############################
 # get_gall_type()
+# 기능 : 메이저갤러리인지 마이너갤러리인지 미니갤러리인지 리턴한다
+# 리턴값 : gall_type 문자열
+def get_gall_type(gall_url):
+    if "mgallery" in gall_url:  # 마이너갤러리
+        gall_type = "minor"
+    elif "mini" in gall_url:    # 미니갤러리
+        gall_type = "mini"
+    else:                       # 메이저갤러리
+        gall_type = "major"
+    return gall_type
+
+
+##############################
+# get_url_base()
 # 기능 : 메이저갤러리인지 마이너갤러리인지 미니갤러리인지 판단한다
-# 리턴값 : 메이저갤러리('major'), 마이너갤러리('minor'), 미니갤러리('mini')
+# 리턴값 : url_base
 def get_url_base(gall_url):
-    if "mgallery" in gall_url:
+    if "mgallery" in gall_url:  # 마이너갤러리
         url_base = "https://gall.dcinside.com/mgallery"
-    elif "mini" in gall_url:
+    elif "mini" in gall_url:    # 미니갤러리
         url_base = "https://gall.dcinside.com/mini"
-    else:
+    else:                       # 메이저갤러리
         url_base = "https://gall.dcinside.com"
     return url_base
 

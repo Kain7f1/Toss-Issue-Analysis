@@ -19,10 +19,10 @@ import pandas as pd
 def get_url_dc(gall_url, keyword, blacklist):
     # 0. 기본값 세팅 단계
     try:
-        keyword_unicode = util.convert_to_unicode(keyword)          # 입력받은 키워드를 유니코드로 변환한다
+        keyword_unicode = util.convert_to_unicode(keyword)   # 입력받은 키워드를 유니코드로 변환한다
         gall_id = cr.get_gall_id(gall_url)                   # 갤러리 id
         print("gall_id : ", gall_id)
-        url_base = cr.get_url_base(gall_url)                 # "https" 부터 "board/" 이전까지의 url 부분 (major갤, minor갤, mini갤)
+        url_base = cr.get_url_base(gall_url)  # "https" 부터 "board/" 이전까지의 url 부분 (major갤, minor갤, mini갤)
         print("url_base : ", url_base)
         max_num = cr.get_max_num(gall_url, gall_id)   # 검색결과 중, 가장 큰 글번호 10000단위로 올림한 값/10000
         print("max_num : ", max_num)
@@ -63,7 +63,8 @@ def get_url_dc(gall_url, keyword, blacklist):
 
     # 2. 파일로 저장
     try:
-        print(f"[{len(data_list)}개의 url 정보가 저장되었습니다]")
+        print(f"[저장된 url 정보 개수] {len(data_list)}개")
+        print(f"[갤러리 주소] {gall_url}")
         df_result = pd.DataFrame(data_list, columns=['date', 'title', 'url', 'media'])
         util.save_file(df_result, folder_path, f"{file_name}.csv")
     except Exception as e:
@@ -161,6 +162,7 @@ def get_content_dc(gall_url, keyword, blacklist):
     # 4-a) 결과 csv 파일로 저장
     try:
         print(f"[{len(data_list)}개의 content 정보가 저장되었습니다]")
+        print(f"[갤러리 주소 : {gall_url}]")
         df_result = pd.DataFrame(data_list, columns=['date', 'title', 'url', 'media', 'content', 'is_comment'])
         util.save_file(df_result, content_folder_path, f"{content_file_name}.csv")
     except Exception as e:
