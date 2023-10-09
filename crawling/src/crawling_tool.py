@@ -40,7 +40,6 @@ def get_search_result(search_url, time_sleep_sec=0):
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_search_result()] ", e)
         element_list = get_search_result(search_url, time_sleep_sec+2)
-
     return element_list
 
 
