@@ -7,8 +7,8 @@
 from dcinside_crawler import get_url_dc, get_content_dc
 
 # [설정값]
-keyword = "에코"      # 검색할 키워드
-gall_name = "코스피"   # 갤러리 선택
+keyword = "토스"      # 검색할 키워드
+gall_name = "편의점"   # 갤러리 선택
 
 # "keyword" 의 블랙리스트
 blacklist = {
@@ -40,7 +40,7 @@ gall_url = {
 
 
 # [1. url 크롤링]
-# get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])
+get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])
 
 # [2. content 크롤링]
-get_content_dc(gall_url[gall_name], keyword, blacklist[keyword])
+# get_content_dc(gall_url[gall_name], keyword, blacklist[keyword])
