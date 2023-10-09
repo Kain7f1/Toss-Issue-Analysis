@@ -55,16 +55,9 @@ def get_url_dc(gall_url, keyword, blacklist):
             for element in element_list:    # element == 글 하나
                 try:
                     # [검색결과에서 글 하나씩 크롤링]
-                    if element.find('td', class_='gall_writer').get_text() == "운영자":   # 페이지마다 광고글 처리하기
-                        continue    # 광고글은 무시하고 넘어가기
-                    date = element.find('td', class_='gall_date')['title'][:10]                             # date 가져오기
-                    title = element.find('td', class_='gall_tit ub-word').find('a').get_text(strip=True)    # title 가져오기
-                    title = util.preprocess_title(title)    # 전처리
-                    if util.contains_blacklist(title, blacklist):
-                        print("제목에 blacklist에 해당하는 단어 발견 : ", title)
-                        continue    # blacklist 포함 단어가 있으면 무시하고 넘어가기
-                    url = "https://gall.dcinside.com" + element.select_one("td.gall_tit a")['href']
-                    new_row = [date, title, url, gall_id]
+                    is_contine, new_row = cr.get_new_row_from_search_result(element, gall_id, blacklist)
+                    if is_contine:
+                        continue
                     data_list.append(new_row)  # data_list에 크롤링한 정보 저장
                     print(f"[page : {page}/{last_page}] new_row : {new_row}")
                 except Exception as e:

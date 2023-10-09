@@ -43,6 +43,7 @@ def get_search_result(search_url, time_sleep_sec=0):
 
     return element_list
 
+
 ###############################
 # get_max_num()
 # 기능 : 검색결과 중 가장 큰 글번호를 구하여 리턴한다
@@ -71,6 +72,29 @@ def get_max_num(keyword, gall_id, url_base, time_sleep_sec=0):
         max_num = get_max_num(keyword, gall_id, url_base, time_sleep_sec+2)
     return max_num
 
+
+#####################################
+def get_new_row_from_search_result(element, gall_id, blacklist):
+    new_row = []
+    is_continue = False     # is_continue가 True면 이 함수를 사용하는 반복문을 탈출하도록 할 것입니다
+    try:
+        if element.find('td', class_='gall_writer').get_text() == "운영자":  # 광고글은 글쓴이가 "운영자"
+            print("광고글입니다. 다음글로 넘어갑니다")
+            is_continue = True              # 페이지마다 광고글 처리하기
+            return is_continue, new_row     # 광고글은 넘어가기
+        date = element.find('td', class_='gall_date')['title'][:10]  # date 가져오기
+        title = element.find('td', class_='gall_tit ub-word').find('a').get_text(strip=True)  # title 가져오기
+        title = util.preprocess_title(title)  # 제목을 전처리하기
+        if util.contains_blacklist(title, blacklist):
+            print("제목에 blacklist에 해당하는 단어 발견 : ", title)    # 제목에 blacklist에 해당하는 단어 발견
+            is_continue = True              # 제목에 blacklist의 단어가 있으면
+            return is_continue, new_row     # 무시하고 넘어가기
+        url = "https://gall.dcinside.com" + element.select_one("td.gall_tit a")['href']
+        new_row = [date, title, url, gall_id]
+    except Exception as e:
+        print("[오류가 발생하여 반복합니다] [get_new_row_from_search_result()] ", e)
+        is_continue, new_row = get_new_row_from_search_result(element, gall_id, blacklist)
+    return is_continue, new_row
 
 #####################################
 # 본문에서 new_row를 얻어오는 함수
