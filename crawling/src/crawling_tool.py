@@ -47,28 +47,27 @@ def get_search_result(search_url, time_sleep=0):
 # get_max_num()
 # 기능 : 검색결과 중 가장 큰 글번호를 구하여 리턴한다
 # 리턴값 : max_num
-def get_max_num(keyword, gall_id, url_base, time_sleep=0):
+def get_max_num(gall_url, gall_id, time_sleep=0):
     try:
-        temp_url = f"{url_base}/board/lists/?id={gall_id}&s_type=search_subject_memo&s_keyword={keyword}"
-        print("temp_url = ", temp_url)
         with requests.Session() as session:
-            response = session.get(temp_url, headers=header_dc)
+            response = session.get(gall_url, headers=header_dc)
             time.sleep(time_sleep)
         soup = BeautifulSoup(response.text, "html.parser")  # 페이지의 soup
         box = soup.select("div.gall_listwrap tr.ub-content")        # 글만 있는 box
         first_content = ''
         # 검색 범위를 정하는 작업
         for content in box:
-            # 광고는 제거한다 : 광고글은 글쓴이가 "운영자"이다
-            if content.find('td', class_='gall_writer').get_text() == "운영자":
+            # 광고, 공지는 제거한다
+            gall_subject = content.find('td', class_='gall_subject').get_text()
+            if gall_subject in ["설문", "AD", "공지"]:
                 continue
-            # 광고를 제외한 가장 첫번째 글
+            # 광고, 공지를 제외한 가장 첫번째 글
             first_content = content.select_one("td.gall_num").get_text()
             break
         max_num = int(int(first_content)/10000+1)*10000      # max_num  의 글번호까지 검색한다
     except Exception as e:
         print(f"[오류가 발생하여 반복합니다] [get_max_num(time_sleep={time_sleep})] ", e)
-        max_num = get_max_num(keyword, gall_id, url_base, time_sleep+2)
+        max_num = get_max_num(gall_url, gall_id, time_sleep+2)
     return max_num
 
 
