@@ -26,7 +26,7 @@ def get_url_dc(gall_url, keyword, blacklist):
         print("url_base : ", url_base)
         max_num = cr.get_max_num(keyword_unicode, gall_id, url_base)   # 검색결과 중, 가장 큰 글번호 10000단위로 올림한 값/10000
         print("max_num : ", max_num)
-        folder_path = f"./url/{gall_id}"        # 저장할 폴더 경로 설정
+        folder_path = f"./url/{keyword}"        # 저장할 폴더 경로 설정
         util.create_folder(folder_path)         # 폴더 만들기
         error_log = []                          # 에러 로그 저장
         data_list = []                          # 데이터 리스트 ['date', 'title', 'url', 'media']
@@ -111,23 +111,23 @@ def get_url_dc(gall_url, keyword, blacklist):
 @util.timer_decorator
 def get_content_dc(gall_url, keyword, blacklist):
     gall_id = cr.get_gall_id(gall_url)
-    url_folder_path = f"./url/{gall_id}"            # 읽어올 폴더 경로 설정
-    content_folder_path = f"./content/{gall_id}"    # 저장할 폴더 경로 설정
+    url_folder_path = f"./url/{keyword}"            # 읽어올 폴더 경로 설정
+    content_folder_path = f"./content/{keyword}"    # 저장할 폴더 경로 설정
     util.create_folder(content_folder_path)         # 저장할 폴더 만들기
     error_log = []                                  # 에러 로그 저장 [’error’]
     data_list = []                                  # 데이터 리스트 ['date', 'title', 'url', 'media', 'content', 'is_comment']
-    url_csv_file_name = f"url_{keyword}_{gall_id}.csv"        # url csv 파일 이름
+    url_file_name = f"url_{keyword}_{gall_id}"        # url csv 파일 이름
     content_file_name = f"content_{keyword}_{gall_id}"        # content 파일 이름
 
     # 1) url.csv를 df로 읽어옴
-    df_url = util.read_file(url_folder_path, url_csv_file_name)
-
+    df_url = util.read_file(url_folder_path, f"{url_file_name}.csv")
+    len_df = len(df_url)
     # 게시글 하나씩 읽어옴 url_row = ['date', 'title', 'url', 'media']
     for index, url_row in df_url.iterrows():
         # 2-a) df_url에서 한 url_row 읽어옴
         # 3-a) 다 끝났으면 다음 url_row 읽어옴
         # 3-b) 2,3 반복
-        print(f"[index : {index}] 본문 페이지 : {url_row['url']}")
+        print(f"[{index+1}/{len_df}] 본문 페이지 : {url_row['url']}")
 
         # {step 1} 본문 정보 row를 data_list에 추가
         print("{step 1 시작} 본문 정보를 추가하겠습니다")
