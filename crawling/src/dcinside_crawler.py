@@ -58,21 +58,13 @@ def get_url_dc(gall_url, keyword, blacklist):
                 print(f"[{search_pos} {page}/{last_page}] new_row : {new_row}")
 
     # 2. 파일로 저장
-    try:
-        print(f"[저장된 url 정보 개수] {len(data_list)}개")
-        print(f"[갤러리 주소] {gall_url}")
-        df_result = pd.DataFrame(data_list, columns=['date', 'title', 'url', 'media'])
-        util.save_file(df_result, folder_path, f"{file_name}.csv")
-    except Exception as e:
-        status = "[파일 저장할 때 오류 발생]"
-        print('[error] ', e)
-        error_log.append([url, status, e])
+    print(f"[저장된 url 정보 개수] {len(data_list)}개")
+    print(f"[갤러리 주소] {gall_url}")
+    df_result = pd.DataFrame(data_list, columns=['date', 'title', 'url', 'media'])
+    util.save_file(df_result, folder_path, f"{file_name}.csv")
 
     # 3. 에러로그확인
-    try:
-        util.error_check(error_log, folder_path, file_name)
-    except Exception as e:
-        print('[error로그 추가할 때 오류 발생] ', e)
+    util.error_check(error_log, folder_path, file_name)
 
 
 #####################################
