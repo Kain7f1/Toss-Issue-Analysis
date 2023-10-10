@@ -6,8 +6,11 @@ from selenium import webdriver
 import datetime
 import utility_module as util
 
-# dcinside 봇 차단을 위한 헤더 설정
-header_dc = {
+
+#############################################################################
+#                                 << 설정값 >>
+# dcinside 헤더 :  dcinside 봇 차단을 위한 헤더 설정
+headers_dc = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36",
         "Connection": "keep-alive",
         "Cache-Control": "max-age=0",
@@ -23,23 +26,85 @@ header_dc = {
         "Accept-Language": "ko-KR,ko;q=0.9"
     }
 
+# 목적에 맞는 헤더를 설정한다
+headers = headers_dc
+
+###############################################################################
+#                                 << 함수들 >>                                 #
+###############################################################################
+# get_driver()
+# 사용 전제 조건 : Users 폴더에 버전에 맞는 chromedriver.exe를 다운받아주세요
+# 기능 : driver를 반환합니다
+# 리턴값 : driver
+# 사용법 : driver = get_driver() 쓰고 driver.get(url) 처럼 사용합니다
+def get_driver():
+    CHROME_DRIVER_PATH = "C:/Users/chromedriver.exe"    # (절대경로) Users 폴더에 chromedriver.exe를 설치했음
+    options = webdriver.ChromeOptions()                 # 옵션 선언
+    # 옵션 설정
+    # options.add_argument("--start-maximized")         # 창이 최대화 되도록 열리게 한다.
+    options.add_argument("--headless")                  # 창이 없이 크롬이 실행이 되도록 만든다
+    options.add_argument("disable-infobars")            # 안내바가 없이 열리게 한다.
+    options.add_argument("disable-gpu")                 # 크롤링 실행시 GPU를 사용하지 않게 한다.
+    options.add_argument("--disable-dev-shm-usage")     # 공유메모리를 사용하지 않는다
+    options.add_argument("--blink-settings=imagesEnabled=false")    # 이미지 로딩 비활성화
+    options.add_argument('--disk-cache-dir=/path/to/cache-dir')     # 캐시 사용 활성화
+    options.page_load_strategy = 'none'     # 전체 페이지가 완전히 로드되기를 기다리지 않고 다음 작업을 수행 (중요)
+    options.add_argument('--log-level=3')   # 웹 소켓을 통한 로그 메시지 비활성화
+    options.add_argument('--no-sandbox')    # 브라우저 프로파일링 비활성화
+    options.add_argument('--disable-plugins')       # 다양한 플러그인 및 기능 비활성화
+    options.add_argument('--disable-extensions')    # 다양한 플러그인 및 기능 비활성화
+    options.add_argument('--disable-sync')          # 다양한 플러그인 및 기능 비활성화
+    driver = webdriver.Chrome(CHROME_DRIVER_PATH, options=options)
+    return driver
+
+
+#############################################################################
+# get_soup_from_url()
+# 기능 : url을 받아 requests를 사용하여 soup를 리턴하는 함수입니다
+# 특징 : 오류발생 시 재귀하기 때문에, 성공적으로 soup를 받아올 수 있습니다.
+def get_soup_from_url(url, time_sleep=0):
+    plus = 1    # 재귀할 때 마다 time_sleep에 plus만큼 늘어난다
+    try:
+        with requests.Session() as session:
+            response = session.get(url, headers=headers)
+            time.sleep(time_sleep)
+        soup = BeautifulSoup(response.text, "html.parser")
+        if len(soup) == 0:  # 불러오는데 실패하면
+            print(f"[soup 로딩 실패, 반복] [get_soup_from_url(time_sleep=1)]")
+            soup = get_soup_from_url(url, 1)
+    except Exception as e:
+        print(f"[오류 발생, 반복] [get_soup_from_url(time_sleep=1)] ", e)
+        soup = get_soup_from_url(url, 1)
+    return soup
+
+
+#############################
+# is_deleted_url()
+# 기능 : url을 받아, 글이 삭제되었는지 아닌지 확인합니다
+# 입력값 : 글 url
+# 리턴값 : 글이 삭제되었으면 True, 글이 온전하면 False
+def is_deleted_page(soup):
+    try:
+        defer = soup.select_one('script')['defer']
+        return False
+    except Exception as e:
+        print("[삭제된 페이지입니다] ", e)
+        return True
+
 
 ###############################
 # get_search_result()
 # 기능 : 검색결과 페이지 정보를 불러온다
 # 리턴값 : 검색결과의 글 리스트
-def get_search_result(search_url, time_sleep=0):
+def get_search_result(soup, time_sleep=0):
     try:
-        with requests.Session() as session:
-            response = session.get(search_url, headers=header_dc)
-        soup = BeautifulSoup(response.text, "html.parser")  # 검색 결과 페이지
         element_list = soup.select("table.gall_list tr.ub-content")  # 한 페이지 전체 글 리스트
         if len(element_list) == 0:  # 검색 결과는 광고글를 포함해서 최소 1개 이상이어야 한다. 없으면 다시 돌림
-            print("[검색 실패해서 반복합니다] [get_search_result()]")
-            element_list = get_search_result(search_url, time_sleep+2)
+            print("[검색 실패, 반복] [get_search_result()]")
+            element_list = get_search_result(soup, time_sleep+1)
     except Exception as e:
-        print("[오류가 발생하여 반복합니다] [get_search_result()] ", e)
-        element_list = get_search_result(search_url, time_sleep+2)
+        print("[오류 발생, 반복] [get_search_result()] ", e)
+        element_list = get_search_result(soup, time_sleep+1)
     return element_list
 
 
@@ -47,13 +112,9 @@ def get_search_result(search_url, time_sleep=0):
 # get_max_num()
 # 기능 : 검색결과 중 가장 큰 글번호를 구하여 리턴한다
 # 리턴값 : max_num
-def get_max_num(gall_url, gall_id, time_sleep=0):
-    gall_type = get_gall_type(gall_url)     # "minor" or "mini" or "major"
+def get_max_num(soup, gall_url, gall_id, time_sleep=0):
+    gall_type = get_gall_type(gall_url)     # 갤러리 타입. "minor" or "mini" or "major"
     try:
-        with requests.Session() as session:
-            response = session.get(gall_url, headers=header_dc)
-            time.sleep(time_sleep)
-        soup = BeautifulSoup(response.text, "html.parser")  # 페이지의 soup
         box = soup.select("div.gall_listwrap tr.ub-content")        # 글만 있는 box
         first_content = ''
         # 검색 범위를 정하는 작업
@@ -72,12 +133,15 @@ def get_max_num(gall_url, gall_id, time_sleep=0):
             break
         max_num = int(int(first_content)/10000+1)*10000      # max_num  의 글번호까지 검색한다
     except Exception as e:
-        print(f"[오류가 발생하여 반복합니다] [get_max_num(time_sleep={time_sleep})] ", e)
-        max_num = get_max_num(gall_url, gall_id, time_sleep+2)
+        print(f"[오류 발생, 반복] [get_max_num(time_sleep={time_sleep})] ", e)
+        max_num = get_max_num(soup, gall_url, gall_id, time_sleep+2)
     return max_num
 
 
 #####################################
+# get_new_row_from_search_result()
+# 기능 : 검색결과에서 글 하나의 정보를 리턴한다
+# 리턴값 : is_continue(이 정보가 불필요하면 True, 필요하면 False), new_row(글 하나의 정보)
 def get_new_row_from_search_result(element, gall_id, blacklist, error_count=0):
     new_row = []
     is_continue = False     # is_continue가 True면 이 함수를 사용하는 반복문을 탈출하도록 할 것입니다
@@ -100,25 +164,22 @@ def get_new_row_from_search_result(element, gall_id, blacklist, error_count=0):
         url = "https://gall.dcinside.com" + element.select_one("td.gall_tit a")['href']
         new_row = [date, title, url, gall_id]
     except Exception as e:
-        print("[오류가 발생하여 반복합니다] [get_new_row_from_search_result()] ", e)
+        print("[오류 발생, 반복] [get_new_row_from_search_result()] ", e)
         is_continue, new_row = get_new_row_from_search_result(element, gall_id, blacklist, error_count+1)
     return is_continue, new_row
 
+
 #####################################
 # 본문에서 new_row를 얻어오는 함수
-def get_new_row_from_main_content(url_row, time_sleep=0):
+def get_new_row_from_main_content(url_row, soup, time_sleep=0):
     is_comment = 0  # 본문이므로 0
     try:
-        with requests.Session() as session:
-            response = session.get(url_row['url'], headers=header_dc)
-            time.sleep(time_sleep)
-        soup = BeautifulSoup(response.text, "html.parser")
         content = util.preprocess_content_dc(soup.find('div', {"class": "write_div"}).text)
         content = url_row['title'] + " " + content
         new_row = [url_row['date'], url_row['title'], url_row['url'], url_row['media'], content, is_comment]
     except Exception as e:
-        print(f"[오류가 발생하여 반복합니다] [get_new_row_from_main_content(url_row, {time_sleep})] ", e)
-        new_row = get_new_row_from_main_content(url_row, time_sleep+2)
+        print(f"[오류 발생, 반복] [get_new_row_from_main_content(time_sleep={time_sleep})] ", e)
+        new_row = get_new_row_from_main_content(url_row, soup, time_sleep+2)
     return new_row
 
 
@@ -134,7 +195,7 @@ def get_reply_list(url, time_sleep=0):
         reply_list = soup.find_all("li", {"class": "ub-content"})
         driver.quit()
     except Exception as e:
-        print(f"[오류가 발생하여 반복합니다] [get_reply_list(url, {time_sleep})] ", e)
+        print(f"[오류 발생, 반복] [get_reply_list(time_sleep={time_sleep})] ", e)
         reply_list = get_reply_list(url, time_sleep+2)
     return reply_list
 
@@ -143,15 +204,27 @@ def get_reply_list(url, time_sleep=0):
 # get_last_page()
 # 기능 : [dcinside] 갤러리 내에서 검색결과의 마지막 페이지가 몇인지 리턴 (검색한 직후의 url이어야 함)
 # 리턴값 : max_page(int)
+# def get_last_page(soup):
+#     paging_box = soup.find('div', class_='bottom_paging_wrap re')
+#     a_list = paging_box.select("div.bottom_paging_box a")
+#     for a in a_list:
+#         print(a)
+#     print("len a_list = ",len(a_list))
+#     if len(a_list) == 17:    # 한번에 15 page씩 나와서, page가 16개 이상이면 >> 버튼이 생기면서 a태그가 17개가 된다 / 이때의 페이징 처리
+#         last_page_url = a_list[-2]['href']   # 맨 마지막 페이지로 가는 버튼의 url
+#         last_page = re.search(r'page=(\d+)', last_page_url).group(1)     # 정규식으로 page 부분의 숫자만 추출
+#         return int(last_page)  # 맨 마지막 페이지
+#     else:
+#         return len(a_list)  # 페이지 개수
+
 def get_last_page(url, time_sleep=0):
     try:
         with requests.Session() as session:
-            response = session.get(url, headers=header_dc)
+            response = session.get(url, headers=headers)
             time.sleep(time_sleep)
-        soup = BeautifulSoup(response.text, "html.parser").find("div", class_="bottom_paging_wrap re")
+        soup = BeautifulSoup(response.text, "html.parser")
         filtered_a_tags = [a for a in soup.find_all('a') if not a.find('span', class_='sp_pagingicon')]
         num_button_count = len(filtered_a_tags) + 1    # 숫자 버튼의 개수
-
         if num_button_count >= 16:    # 한번에 15 page씩 나와서, page가 16개 이상이면 >> 버튼이 생기면서 a태그가 17개가 된다 / 이때의 페이징 처리
             last_page_url = soup.find_all("a")[-2]['href']                          # 맨 마지막 페이지로 가는 버튼의 url
             last_page = re.search(r'page=(\d+)', last_page_url).group(1)     # 정규식으로 page 부분의 숫자만 추출
@@ -159,7 +232,7 @@ def get_last_page(url, time_sleep=0):
         else:
             last_page = num_button_count
     except Exception as e:
-        print(f"[오류가 발생하여 반복합니다] [get_last_page(url, {time_sleep})] ", e)
+        print(f"[오류 발생, 반복] [get_last_page(time_sleep={time_sleep})] ", e)
         last_page = get_last_page(url, time_sleep+2)
     return last_page
 
@@ -228,47 +301,7 @@ def is_ignore_reply(reply):
         return False
 
 
-#############################
-# is_deleted_url()
-# 기능 : url을 받아, 글이 삭제되었는지 아닌지 확인합니다
-# 입력값 : 글 url
-# 리턴값 : 글이 삭제되었으면 True, 글이 온전하면 False
-def is_deleted_page(page_url):
-    try:
-        with requests.Session() as session:
-            response = session.get(page_url, headers=header_dc)
-        soup = BeautifulSoup(response.text, "html.parser").select_one('script')['defer']
-    except Exception as e:
-        print("[삭제된 페이지입니다] ", e)
-        return True
-    return False
 
-
-#############################
-# get_driver()
-# 사용 전제 조건 : Users 폴더에 버전에 맞는 chromedriver.exe를 다운받아주세요
-# 기능 : driver를 반환합니다
-# 리턴값 : driver
-# 사용법 : driver = get_driver() 쓰고 driver.get(url) 처럼 사용합니다
-def get_driver():
-    CHROME_DRIVER_PATH = "C:/Users/chromedriver.exe"    # (절대경로) Users 폴더에 chromedriver.exe를 설치했음
-    options = webdriver.ChromeOptions()                 # 옵션 선언
-    # 옵션 설정
-    # options.add_argument("--start-maximized")         # 창이 최대화 되도록 열리게 한다.
-    options.add_argument("--headless")                  # 창이 없이 크롬이 실행이 되도록 만든다
-    options.add_argument("disable-infobars")            # 안내바가 없이 열리게 한다.
-    options.add_argument("disable-gpu")                 # 크롤링 실행시 GPU를 사용하지 않게 한다.
-    options.add_argument("--disable-dev-shm-usage")     # 공유메모리를 사용하지 않는다
-    options.add_argument("--blink-settings=imagesEnabled=false")    # 이미지 로딩 비활성화
-    options.add_argument('--disk-cache-dir=/path/to/cache-dir')     # 캐시 사용 활성화
-    options.page_load_strategy = 'none'     # 전체 페이지가 완전히 로드되기를 기다리지 않고 다음 작업을 수행 (중요)
-    options.add_argument('--log-level=3')   # 웹 소켓을 통한 로그 메시지 비활성화
-    options.add_argument('--no-sandbox')    # 브라우저 프로파일링 비활성화
-    options.add_argument('--disable-plugins')       # 다양한 플러그인 및 기능 비활성화
-    options.add_argument('--disable-extensions')    # 다양한 플러그인 및 기능 비활성화
-    options.add_argument('--disable-sync')          # 다양한 플러그인 및 기능 비활성화
-    driver = webdriver.Chrome(CHROME_DRIVER_PATH, options=options)
-    return driver
 
 
 
