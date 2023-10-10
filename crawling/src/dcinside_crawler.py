@@ -2,8 +2,6 @@
 # Made by Hansol Lee
 # 20230927
 #############################
-
-from bs4 import BeautifulSoup
 import crawling_tool as cr
 import utility_module as util
 import pandas as pd
@@ -32,7 +30,6 @@ def get_url_dc(gall_url, keyword, blacklist):
         data_list = []                          # 데이터 리스트 ['date', 'title', 'url', 'media']
         file_name = f"url_{keyword}_{gall_id}"            # 저장할 파일 이름
         url = '_'
-        search_url = '_'
     except Exception as e:
         print("[기본값 세팅 단계에서 error가 발생함] ", e)
         print("[get_url_dcinside() 종료]")
@@ -116,14 +113,17 @@ def get_content_dc(gall_url, keyword, blacklist):
         # 2-a) df_url에서 한 url_row 읽어옴
         # 3-a) 다 끝났으면 다음 url_row 읽어옴
         # 3-b) 2,3 반복
-        print(f"[{index+1}/{len_df}] 본문 페이지 : {url_row['url']}")
-
+        title = url_row['title']
+        url = url_row['url']
+        print(f"[{index+1}/{len_df}] 본문 페이지 : {url}")
+        if cr.is_deleted_page(url):     # 글이 삭제되었는지 검사
+            continue    # 글이 삭제되었으면, 다음 row로 넘어갑니다
         # {step 1} 본문 정보 row를 data_list에 추가
         print("{step 1 시작} 본문 정보를 추가하겠습니다")
         new_row = cr.get_new_row_from_main_content(url_row)  # ['date','title','url','media','content','is_comment']
         if util.contains_blacklist(new_row[-2], blacklist):
             print("{step 1~3 종료} content에 blacklist에 해당하는 단어 발견 : ", new_row[-2])
-            continue
+            continue    # 블랙리스트에 해당하는 내용이 있으면, 다음 row로 넘어갑니다
         else:
             data_list.append(new_row)                                         # data_list에 new_row를 추가한다
             print("{step 1 종료} 본문을 추가했습니다", new_row[0], new_row[-2])
@@ -131,7 +131,7 @@ def get_content_dc(gall_url, keyword, blacklist):
         # {step 2} 댓글들 정보들을 불러오겠습니다
         # new_row 형식 : ['date', 'title', 'url', 'media', 'content', 'is_comment']
         print("{step 2 시작} 댓글 정보들을 불러오겠습니다")
-        reply_list = cr.get_reply_list(url_row['url'])  # 댓글 리스트 soup
+        reply_list = cr.get_reply_list(url)  # 댓글 리스트 soup
         print("{step 2 종료} 댓글 정보들을 불러왔습니다")
 
         # 댓글이 없으면 다음 글로 넘어감
@@ -149,13 +149,13 @@ def get_content_dc(gall_url, keyword, blacklist):
                 date = cr.get_reply_date(reply)
                 content = reply.find("p", {"class": "usertxt ub-word"}).text  # 댓글 내용 추출
                 content = util.preprocess_content_dc(content)    # 전처리
-                new_row = [date, url_row['title'], url_row['url'], url_row['media'], content, 1]  # new_row에 정보를 채워둔다
+                new_row = [date, title, url, gall_id, content, 1]  # new_row에 정보를 채워둔다
                 data_list.append(new_row)                        # data_list에 new_row를 추가한다
                 print(f"[댓글을 추가했습니다] {new_row}")
             except Exception as e:
                 status = "[{step 3} 댓글 정보를 크롤링]"
                 print(f'[ERROR][index : {index}]{status}[error message : {e}]')
-                error_log.append([index, status, e, url_row['title'], url_row['url']])
+                error_log.append([index, status, e, title, url])
                 continue
         print("{step 3 종료} 댓글 크롤링을 종료합니다")
     # 4) 끝나면 파일로 저장, 에러 로그 체크

@@ -212,6 +212,7 @@ def get_reply_date(reply):
 
 
 #####################################
+# is_ignore_reply()
 # 기능 : 무시해야하는 댓글이면, True를 반환하고, 필요한 댓글이면 False를 반환합니다
 def is_ignore_reply(reply):
     if reply.select_one("p.del_reply"):
@@ -225,6 +226,22 @@ def is_ignore_reply(reply):
         return True
     else:
         return False
+
+
+#############################
+# is_deleted_url()
+# 기능 : url을 받아, 글이 삭제되었는지 아닌지 확인합니다
+# 입력값 : 글 url
+# 리턴값 : 글이 삭제되었으면 True, 글이 온전하면 False
+def is_deleted_page(page_url):
+    try:
+        with requests.Session() as session:
+            response = session.get(page_url, headers=header_dc)
+        soup = BeautifulSoup(response.text, "html.parser").select_one('script')['defer']
+    except Exception as e:
+        print("[삭제된 페이지입니다] ", e)
+        return True
+    return False
 
 
 #############################
