@@ -37,20 +37,16 @@ def get_url_dc(gall_url, keyword, blacklist):
 
     # 1. url 크롤링
     for search_pos in range(max_num, 0, -10000):
-        print(f"[1만 개 단위로 검색합니다. 검색어 : {keyword}] " + "*"*100)
-        print(f"[search_pos : {search_pos}] " + "*"*100)
         temp_url = f"{url_base}/board/lists/?id={gall_id}&page=1&search_pos=-{search_pos}&s_type=search_subject_memo&s_keyword={keyword_unicode}"
-        # temp_soup = cr.get_soup_from_url(temp_url)
-        print(temp_url)
-        last_page = cr.get_last_page(temp_url)     # 1만 단위 검색결과의 마지막 페이지
-        # 해외주식갤러리처럼 컨텐츠 많을때, 1,2,3,4,5 이렇게 페이징 되어있는거 있음. 이걸 페이지 넘기면서 크롤링
+        print(f"[{keyword}의 검색 결과 / 범위 : {search_pos}~{search_pos-10000}] {temp_url}")
+        temp_soup = cr.get_soup_from_url(temp_url)  # soup 받아오기
+        last_page = cr.get_last_page(temp_soup)     # 1만 단위 검색결과의 마지막 페이지
+        # 페이지 넘기면서 크롤링
         for page in range(1, last_page+1):
             # [검색결과 페이지 불러오기]
-            print(f"[크롤링 남은 글 갯수 : {search_pos}][page : {page}/{last_page}]")
             search_url = f"{url_base}/board/lists/?id={gall_id}&page={page}&search_pos=-{search_pos}&s_type=search_subject_memo&s_keyword={keyword_unicode}"
             search_soup = cr.get_soup_from_url(search_url)
             element_list = cr.get_search_result(search_soup)
-            print(f"[글 개수 : {len(element_list)}]")
             # 글 하나씩 뽑아서 크롤링
             for element in element_list:    # element는 글 하나
                 # [검색결과에서 글 하나씩 크롤링]
@@ -59,7 +55,7 @@ def get_url_dc(gall_url, keyword, blacklist):
                     continue    # 다음 element로 넘어간다
                 else:                           # 정상적이면
                     data_list.append(new_row)   # data_list에 크롤링한 정보 저장
-                print(f"[page {page}/{last_page}] new_row : {new_row}")
+                print(f"[{search_pos} {page}/{last_page}] new_row : {new_row}")
 
     # 2. 파일로 저장
     try:
