@@ -47,36 +47,45 @@ def get_search_result(search_url, time_sleep=0):
 # get_max_num()
 # 기능 : 검색결과 중 가장 큰 글번호를 구하여 리턴한다
 # 리턴값 : max_num
-def get_max_num(keyword, gall_id, url_base, time_sleep=0):
+def get_max_num(gall_url, gall_id, time_sleep=0):
+    gall_type = get_gall_type(gall_url)     # "minor" or "mini" or "major"
     try:
-        temp_url = f"{url_base}/board/lists/?id={gall_id}&s_type=search_subject_memo&s_keyword={keyword}"
-        print("temp_url = ", temp_url)
         with requests.Session() as session:
-            response = session.get(temp_url, headers=header_dc)
+            response = session.get(gall_url, headers=header_dc)
             time.sleep(time_sleep)
         soup = BeautifulSoup(response.text, "html.parser")  # 페이지의 soup
         box = soup.select("div.gall_listwrap tr.ub-content")        # 글만 있는 box
         first_content = ''
         # 검색 범위를 정하는 작업
         for content in box:
-            # 광고는 제거한다 : 광고글은 글쓴이가 "운영자"이다
-            if content.find('td', class_='gall_writer').get_text() == "운영자":
-                continue
-            # 광고를 제외한 가장 첫번째 글
+            # 광고, 공지는 제거한다
+            if gall_type == "major":    # 메이저 갤러리
+                gall_num = content.find('td', class_='gall_num').get_text()
+                if gall_num in ["설문", "AD", "공지"]:
+                    continue
+            else:   # 마이너, 미니 갤러리
+                gall_subject = content.find('td', class_='gall_subject').get_text()
+                if gall_subject in ["설문", "AD", "공지"]:
+                    continue
+            # 광고, 공지를 제외한 가장 첫번째 글
             first_content = content.select_one("td.gall_num").get_text()
             break
         max_num = int(int(first_content)/10000+1)*10000      # max_num  의 글번호까지 검색한다
     except Exception as e:
         print(f"[오류가 발생하여 반복합니다] [get_max_num(time_sleep={time_sleep})] ", e)
-        max_num = get_max_num(keyword, gall_id, url_base, time_sleep+2)
+        max_num = get_max_num(gall_url, gall_id, time_sleep+2)
     return max_num
 
 
 #####################################
-def get_new_row_from_search_result(element, gall_id, blacklist):
+def get_new_row_from_search_result(element, gall_id, blacklist, error_count=0):
     new_row = []
     is_continue = False     # is_continue가 True면 이 함수를 사용하는 반복문을 탈출하도록 할 것입니다
     try:
+        if error_count >= 3:    # 3번 반복해도 실패하면 넘어가기
+            print("에러가 3번 발생해서 스킵합니다. 함수 : get_new_row_from_search_result()")
+            is_continue = True
+            return is_continue, new_row  # 넘어가기
         if element.find('td', class_='gall_writer').get_text() == "운영자":  # 광고글은 글쓴이가 "운영자"
             print("광고글입니다. 다음글로 넘어갑니다")
             is_continue = True              # 페이지마다 광고글 처리하기
@@ -92,7 +101,7 @@ def get_new_row_from_search_result(element, gall_id, blacklist):
         new_row = [date, title, url, gall_id]
     except Exception as e:
         print("[오류가 발생하여 반복합니다] [get_new_row_from_search_result()] ", e)
-        is_continue, new_row = get_new_row_from_search_result(element, gall_id, blacklist)
+        is_continue, new_row = get_new_row_from_search_result(element, gall_id, blacklist, error_count+1)
     return is_continue, new_row
 
 #####################################
@@ -162,16 +171,30 @@ def get_gall_id(gall_url):
     return re.search(r'id=([\w_]+)', gall_url).group(1)
 
 
-##############################
+#############################
 # get_gall_type()
+# 기능 : 메이저갤러리인지 마이너갤러리인지 미니갤러리인지 리턴한다
+# 리턴값 : gall_type 문자열
+def get_gall_type(gall_url):
+    if "mgallery" in gall_url:  # 마이너갤러리
+        gall_type = "minor"
+    elif "mini" in gall_url:    # 미니갤러리
+        gall_type = "mini"
+    else:                       # 메이저갤러리
+        gall_type = "major"
+    return gall_type
+
+
+##############################
+# get_url_base()
 # 기능 : 메이저갤러리인지 마이너갤러리인지 미니갤러리인지 판단한다
-# 리턴값 : 메이저갤러리('major'), 마이너갤러리('minor'), 미니갤러리('mini')
+# 리턴값 : url_base
 def get_url_base(gall_url):
-    if "mgallery" in gall_url:
+    if "mgallery" in gall_url:  # 마이너갤러리
         url_base = "https://gall.dcinside.com/mgallery"
-    elif "mini" in gall_url:
+    elif "mini" in gall_url:    # 미니갤러리
         url_base = "https://gall.dcinside.com/mini"
-    else:
+    else:                       # 메이저갤러리
         url_base = "https://gall.dcinside.com"
     return url_base
 
