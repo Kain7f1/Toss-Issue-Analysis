@@ -83,13 +83,16 @@ def combine_csv_file(folder_path, result_file_name):
     for csv_file_name in csv_file_names:
         df_content = read_file(folder_path, file_name=csv_file_name)
         dataframes.append(df_content)
-    merged_df = pd.concat(dataframes).reset_index(drop=True)
+    merged_df = pd.concat(dataframes)
+    # merged_df.drop_duplicates(subset='url', keep='first', inplace=True)  # 중복 제거 옵션
+    merged_df = merged_df.reset_index(drop=True)
     print(merged_df.tail())
 
     # 3. df를 csv로 만든다
     result_folder_path = create_folder(f"{folder_path}/{result_file_name}")
     save_file(merged_df, result_folder_path, file_name=f"{result_file_name}.csv")
     print(f"[{len(csv_file_names)}개의 파일을 {result_file_name}.csv 파일로 합쳤습니다]")
+    print(f"총 데이터 개수 : {len(merged_df)}개")
 
 
 #####################################
