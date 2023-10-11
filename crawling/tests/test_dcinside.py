@@ -3,10 +3,11 @@
 # [실행하기 전에, Users 폴더에 chromedriver.exe를 현재 크롬 버전에 맞게 다운받아주세요]
 # 기능 : dcinside 크롤링 실행 함수
 from dcinside_crawler import get_url_dc, get_content_dc
+import utility_module as util
 #############################################################################
 #                                 << 설정값 >>
-keyword = "에코"       # 검색할 키워드
-gall_name = "에너지주식"    # 검색할 갤러리 선택하기
+keyword = "카카오"       # 검색할 키워드
+gall_name = "미국주식"    # 검색할 갤러리 선택하기
 
 # 검색할 키워드(keyword)의 블랙리스트
 # 목적에 맞지 않는 콘텐츠를 걸러내는 기능을 한다
@@ -17,6 +18,8 @@ blacklist = {
     , "엘앤에프": []
     , "에스엠": []
     , "카카오": []
+    , "lg화학": []
+    , " ": []
 }
 # "____" 갤러리
 gall_url = {
@@ -26,6 +29,7 @@ gall_url = {
     , "코스피": "https://gall.dcinside.com/mgallery/board/lists?id=kospi"
     , "국내선물옵션": "https://gall.dcinside.com/mini/board/lists/?id=koreafutures"
     , "실전주식투자": "https://gall.dcinside.com/mgallery/board/lists?id=jusik"
+    , "캠퍼스개미": "https://gall.dcinside.com/mgallery/board/lists?id=smow"
     , "에너지주식": "https://gall.dcinside.com/mini/board/lists/?id=energystock"
     , "초전도체": "https://gall.dcinside.com/board/lists/?id=superconductor"
     , "재테크": "https://gall.dcinside.com/mgallery/board/lists?id=jaetae"
@@ -36,14 +40,17 @@ gall_url = {
     , "알뜰폰": "https://gall.dcinside.com/mgallery/board/lists?id=mvnogallery"
     , "SFF": "https://gall.dcinside.com/mgallery/board/lists?id=sff"
     , "토스": "https://gall.dcinside.com/mgallery/board/lists/?id=toss"
-    , "자동차": "https://gall.dcinside.com/board/lists/?id=car_new1"
 }
 #############################################################################
 #                              << 실행하는 곳 >>
 # [1. url 크롤링]
-# get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])
+get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])
 
 # [2. content 크롤링]
-get_content_dc(gall_url[gall_name], keyword, blacklist[keyword])
+# get_content_dc(gall_url[gall_name], keyword, blacklist[keyword])
 
 #############################################################################
+#                                << 실험실 >>
+# folder_path = f"./url/{keyword}"
+# result_file_name = f"url_{keyword}_kakao"
+# util.combine_csv_file(folder_path, result_file_name)

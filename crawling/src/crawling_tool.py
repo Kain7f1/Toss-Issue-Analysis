@@ -151,7 +151,6 @@ def get_new_row_from_search_result(element, gall_id, blacklist, error_count=0):
             is_continue = True
             return is_continue, new_row  # 넘어가기
         if element.find('td', class_='gall_writer').get_text() == "운영자":  # 광고글은 글쓴이가 "운영자"
-            print("광고글입니다. 다음글로 넘어갑니다")
             is_continue = True              # 페이지마다 광고글 처리하기
             return is_continue, new_row     # 광고글은 넘어가기
         date = element.find('td', class_='gall_date')['title'][:10]  # date 가져오기
@@ -204,37 +203,20 @@ def get_reply_list(url, time_sleep=0):
 # get_last_page()
 # 기능 : [dcinside] 갤러리 내에서 검색결과의 마지막 페이지가 몇인지 리턴 (검색한 직후의 url이어야 함)
 # 리턴값 : max_page(int)
-# def get_last_page(soup):
-#     paging_box = soup.find('div', class_='bottom_paging_wrap re')
-#     a_list = paging_box.select("div.bottom_paging_box a")
-#     for a in a_list:
-#         print(a)
-#     print("len a_list = ",len(a_list))
-#     if len(a_list) == 17:    # 한번에 15 page씩 나와서, page가 16개 이상이면 >> 버튼이 생기면서 a태그가 17개가 된다 / 이때의 페이징 처리
-#         last_page_url = a_list[-2]['href']   # 맨 마지막 페이지로 가는 버튼의 url
-#         last_page = re.search(r'page=(\d+)', last_page_url).group(1)     # 정규식으로 page 부분의 숫자만 추출
-#         return int(last_page)  # 맨 마지막 페이지
-#     else:
-#         return len(a_list)  # 페이지 개수
-
-def get_last_page(url, time_sleep=0):
-    try:
-        with requests.Session() as session:
-            response = session.get(url, headers=headers)
-            time.sleep(time_sleep)
-        soup = BeautifulSoup(response.text, "html.parser")
-        filtered_a_tags = [a for a in soup.find_all('a') if not a.find('span', class_='sp_pagingicon')]
-        num_button_count = len(filtered_a_tags) + 1    # 숫자 버튼의 개수
-        if num_button_count >= 16:    # 한번에 15 page씩 나와서, page가 16개 이상이면 >> 버튼이 생기면서 a태그가 17개가 된다 / 이때의 페이징 처리
-            last_page_url = soup.find_all("a")[-2]['href']                          # 맨 마지막 페이지로 가는 버튼의 url
-            last_page = re.search(r'page=(\d+)', last_page_url).group(1)     # 정규식으로 page 부분의 숫자만 추출
-            last_page = int(last_page)                                              # 맨 마지막 페이지
-        else:
-            last_page = num_button_count
-    except Exception as e:
-        print(f"[오류 발생, 반복] [get_last_page(time_sleep={time_sleep})] ", e)
-        last_page = get_last_page(url, time_sleep+2)
-    return last_page
+def get_last_page(soup):
+    paging_box = soup.find('div', class_='bottom_paging_wrap re')
+    a_list = paging_box.select("div.bottom_paging_box a")
+    len_a_list = len(a_list)
+    for a in a_list:
+        if a.find('span', class_='sp_pagingicon'):
+            len_a_list -= 1
+    last_page = len_a_list + 1
+    if len(a_list) >= 17:    # page가 16개 이상이면 >> 버튼이 생기면서 a태그가 17개가 된다 / 이때의 페이징 처리
+        last_page_url = a_list[-2]['href']   # 맨 마지막 페이지로 가는 버튼의 url
+        last_page = re.search(r'page=(\d+)', last_page_url).group(1)     # 정규식으로 page 부분의 숫자만 추출
+        return int(last_page)  # 맨 마지막 페이지
+    else:
+        return last_page  # 페이지 개수
 
 
 ##############################
