@@ -6,22 +6,22 @@ from dcinside_crawler import get_url_dc, get_content_dc
 import utility_module as util
 #############################################################################
 #                                 << 설정값 >>
-keyword = "엘앤에프"       # 검색할 키워드
-gall_name = "캠퍼스개미"    # 검색할 갤러리 선택하기
+keyword = "lg화학"       # 검색할 키워드
+gall_name = "부동산"    # 검색할 갤러리 선택하기
 
 # 검색할 키워드(keyword)의 블랙리스트
 # 목적에 맞지 않는 콘텐츠를 걸러내는 기능을 한다
 blacklist = {
-      "토스": ["토스트", "도리토스", "치토스", "멘토스", "셀토스", "키보토스", "프로토스", "테스토스", "토스테론"]
-    , "에코": ["에코백", "에코페", "에코팰", "에코플", "에코마", "에코디", "에코랜", "에코스", "에코하", "아마존 에코"]
+      "에코": ["에코백", "에코페", "에코팰", "에코플", "에코마", "에코디", "에코랜", "에코스", "에코하", "아마존 에코"]
     , "에코프로": []
     , "엘앤에프": []
     , "에스엠": []
     , "카카오": []
     , "lg화학": []
-    , " ": []
+    , "토스": ["토스트", "도리토스", "치토스", "멘토스", "셀토스", "키보토스", "프로토스", "테스토스", "토스테론"]
 }
-# "____" 갤러리
+
+# [갤러리 목록] "____" 갤러리
 gall_url = {
       "미국주식": "https://gall.dcinside.com/mgallery/board/lists?id=stockus"
     , "해외주식": "https://gall.dcinside.com/mgallery/board/lists/?id=tenbagger"
@@ -29,6 +29,10 @@ gall_url = {
     , "코스피": "https://gall.dcinside.com/mgallery/board/lists?id=kospi"
     , "국내선물옵션": "https://gall.dcinside.com/mini/board/lists/?id=koreafutures"
     , "실전주식투자": "https://gall.dcinside.com/mgallery/board/lists?id=jusik"
+    , "다우": "https://gall.dcinside.com/mgallery/board/lists?id=dow100"
+    , "슨피": "https://gall.dcinside.com/mini/board/lists/?id=snp500"
+    , "금융": "https://gall.dcinside.com/mgallery/board/lists?id=finance"
+    , "증권": "https://gall.dcinside.com/mgallery/board/lists/?id=securities"
     , "캠퍼스개미": "https://gall.dcinside.com/mgallery/board/lists?id=smow"
     , "에너지주식": "https://gall.dcinside.com/mini/board/lists/?id=energystock"
     , "초전도체": "https://gall.dcinside.com/board/lists/?id=superconductor"
@@ -41,30 +45,14 @@ gall_url = {
     , "SFF": "https://gall.dcinside.com/mgallery/board/lists?id=sff"
     , "토스": "https://gall.dcinside.com/mgallery/board/lists/?id=toss"
 }
+
 #############################################################################
 #                              << 실행하는 곳 >>
-# [1. url 크롤링]
-get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])
-
-# [2. content 크롤링]
-# get_content_dc(gall_url[gall_name], keyword, blacklist[keyword])
+# get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])        # [1. url 크롤링]
+get_content_dc(gall_url[gall_name], keyword, blacklist[keyword])    # [2. content 크롤링]
 
 #############################################################################
 #                                << 실험실 >>
 # folder_path = f"./url/{keyword}"
 # result_file_name = f"url_{keyword}_kakao"
 # util.combine_csv_file(folder_path, result_file_name)
-
-
-###############################################
-# 크롤링한 파일 합치기
-# {step 1} ./content 폴더에 합칠 .csv파일들을 넣어주세요
-# {step 2} combine_crawling_results() 함수를 실행한다
-# combine_crawling_results()
-
-################################################
-# 크롤링 결과를 합치는 함수
-# def combine_crawling_results():
-#     folder_path = "./content"
-#     result_file_name = "crawling_result"    # 결과 파일 이름
-#     util.combine_csv_file(result_file_name, folder_path)
