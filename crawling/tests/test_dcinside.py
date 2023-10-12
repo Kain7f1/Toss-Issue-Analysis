@@ -6,8 +6,8 @@ from dcinside_crawler import get_url_dc, get_content_dc
 import utility_module as util
 #############################################################################
 #                                 << 설정값 >>
-keyword = "카카오"       # 검색할 키워드
-gall_name = "미국주식"    # 검색할 갤러리 선택하기
+keyword = "엘앤에프"       # 검색할 키워드
+gall_name = "캠퍼스개미"    # 검색할 갤러리 선택하기
 
 # 검색할 키워드(keyword)의 블랙리스트
 # 목적에 맞지 않는 콘텐츠를 걸러내는 기능을 한다
@@ -54,3 +54,17 @@ get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])
 # folder_path = f"./url/{keyword}"
 # result_file_name = f"url_{keyword}_kakao"
 # util.combine_csv_file(folder_path, result_file_name)
+
+
+###############################################
+# 크롤링한 파일 합치기
+# {step 1} ./content 폴더에 합칠 .csv파일들을 넣어주세요
+# {step 2} combine_crawling_results() 함수를 실행한다
+# combine_crawling_results()
+
+################################################
+# 크롤링 결과를 합치는 함수
+# def combine_crawling_results():
+#     folder_path = "./content"
+#     result_file_name = "crawling_result"    # 결과 파일 이름
+#     util.combine_csv_file(result_file_name, folder_path)

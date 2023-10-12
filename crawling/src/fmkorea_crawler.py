@@ -102,7 +102,7 @@ def get_content(media):
 
     # data_list에 한 row씩 추가함 : ['date', 'title', 'url', 'media', 'content', 'is_comment']
     # 본문은 content = title + " " + content
-    df_url = utility.read_file(url_folder_path, url_csv_file_name)  # url 파일에서 정보 읽어오기
+    df_url = utility.read_csv_file(url_folder_path, url_csv_file_name)  # url 파일에서 정보 읽어오기
     for index, row in df_url.iterrows():        # 한 줄 씩 읽어옴 ['date', 'title', 'url', 'media']
         try:
             # 2-a) df에서 한 row 읽어옴
