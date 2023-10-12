@@ -1,10 +1,10 @@
 import re
 import time
 import requests
-from bs4 import BeautifulSoup
-from selenium import webdriver
 import datetime
 import utility_module as util
+from bs4 import BeautifulSoup
+from selenium import webdriver
 
 
 #############################################################################
@@ -28,6 +28,7 @@ headers_dc = {
 
 # 목적에 맞는 헤더를 설정한다
 headers = headers_dc
+
 
 ###############################################################################
 #                                 << 함수들 >>                                 #
@@ -63,7 +64,6 @@ def get_driver():
 # 기능 : url을 받아 requests를 사용하여 soup를 리턴하는 함수입니다
 # 특징 : 오류발생 시 재귀하기 때문에, 성공적으로 soup를 받아올 수 있습니다.
 def get_soup_from_url(url, time_sleep=0):
-    plus = 1    # 재귀할 때 마다 time_sleep에 plus만큼 늘어난다
     try:
         with requests.Session() as session:
             response = session.get(url, headers=headers)
@@ -281,15 +281,3 @@ def is_ignore_reply(reply):
         return True
     else:
         return False
-
-
-
-
-
-
-
-
-
-
-
-
