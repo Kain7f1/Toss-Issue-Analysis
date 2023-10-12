@@ -86,7 +86,7 @@ def get_url_dc(gall_url, keyword, blacklist):
 # 5) 에러로그 체크 및 저장
 #################################
 @util.timer_decorator
-def get_content_dc(gall_url, keyword, blacklist, chunk_size = 3):
+def get_content_dc(gall_url, keyword, blacklist, chunk_size=1000):
     gall_id = cr.get_gall_id(gall_url)              # 갤 id
     url_folder_path = f"./url/{keyword}"            # 읽어올 url 폴더 경로 설정
     content_folder_path = f"./content/{keyword}"    # 저장할 content 폴더 경로 설정
