@@ -6,8 +6,8 @@ from dcinside_crawler import get_url_dc, get_content_dc
 import utility_module as util
 #############################################################################
 #                                 << 설정값 >>
-keyword = "카카오"       # 검색할 키워드
-gall_name = "미국주식"    # 검색할 갤러리 선택하기
+keyword = "lg화학"       # 검색할 키워드
+gall_name = "부동산"    # 검색할 갤러리 선택하기
 
 # 검색할 키워드(keyword)의 블랙리스트
 # 목적에 맞지 않는 콘텐츠를 걸러내는 기능을 한다
@@ -21,7 +21,7 @@ blacklist = {
     , "lg화학": []
     , " ": []
 }
-# "____" 갤러리
+# [갤러리 목록] "____" 갤러리
 gall_url = {
       "미국주식": "https://gall.dcinside.com/mgallery/board/lists?id=stockus"
     , "해외주식": "https://gall.dcinside.com/mgallery/board/lists/?id=tenbagger"
@@ -29,6 +29,10 @@ gall_url = {
     , "코스피": "https://gall.dcinside.com/mgallery/board/lists?id=kospi"
     , "국내선물옵션": "https://gall.dcinside.com/mini/board/lists/?id=koreafutures"
     , "실전주식투자": "https://gall.dcinside.com/mgallery/board/lists?id=jusik"
+    , "다우": "https://gall.dcinside.com/mgallery/board/lists?id=dow100"
+    , "슨피": "https://gall.dcinside.com/mini/board/lists/?id=snp500"
+    , "금융": "https://gall.dcinside.com/mgallery/board/lists?id=finance"
+    , "증권": "https://gall.dcinside.com/mgallery/board/lists/?id=securities"
     , "캠퍼스개미": "https://gall.dcinside.com/mgallery/board/lists?id=smow"
     , "에너지주식": "https://gall.dcinside.com/mini/board/lists/?id=energystock"
     , "초전도체": "https://gall.dcinside.com/board/lists/?id=superconductor"
@@ -41,13 +45,11 @@ gall_url = {
     , "SFF": "https://gall.dcinside.com/mgallery/board/lists?id=sff"
     , "토스": "https://gall.dcinside.com/mgallery/board/lists/?id=toss"
 }
+
 #############################################################################
 #                              << 실행하는 곳 >>
-# [1. url 크롤링]
-get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])
-
-# [2. content 크롤링]
-# get_content_dc(gall_url[gall_name], keyword, blacklist[keyword])
+# get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])        # [1. url 크롤링]
+get_content_dc(gall_url[gall_name], keyword, blacklist[keyword])    # [2. content 크롤링]
 
 #############################################################################
 #                                << 실험실 >>
