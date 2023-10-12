@@ -96,19 +96,16 @@ def get_content_dc(gall_url, keyword, blacklist, chunk_size=1000):
     content_file_name = f"content_{keyword}_{gall_id}"        # content 파일 이름
     done_index = util.get_last_number_in_folder(content_folder_path)    # 마지막 파일 번호
 
-    print("done_index :", done_index)
     # 1) url.csv를 df로 읽어옴
     df_url = util.read_file(url_folder_path, f"{url_file_name}.csv")
     row_count = len(df_url)     # url csv 파일 데이터 개수
     sub_dfs = util.split_df_into_sub_dfs(df_url, chunk_size=chunk_size)     # df를 chunk_size 단위로 쪼갬
-    print("len(sub_dfs)", len(sub_dfs))
     for sub_df_index in range(len(sub_dfs)):
         if sub_df_index <= done_index:   # 작업했던 파일이 존재하면
             continue                    # 넘어갑니다
         sub_df = sub_dfs[sub_df_index]
         sub_df_data = []  # 데이터 리스트 ['date', 'title', 'url', 'media', 'content', 'is_comment']
         for index, url_row in sub_df.iterrows():
-            print("index", index)
             # sub_df에서 한 url_row씩 읽어옴
             title = url_row['title']
             url = url_row['url']
