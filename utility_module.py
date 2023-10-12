@@ -34,20 +34,48 @@ def create_folder(folder_path):
 
 #####################################
 # 입력값 : folder_path, endswith (파일이름의 검색조건 : 파일명의 끝)
-# 기능 : file_names 리스트를 가져오는 함수
-def load_file_names(folder_path, endswith='url.csv'):
-    files = []
+# 기능 : 폴더 내의 파일들 이름을 읽어서, 파일 이름들 리스트를 가져오는 함수
+def read_file_names(folder_path, endswith='.csv'):
+    file_names = []
     # 폴더 내의 모든 파일을 탐색
     print(f"[{folder_path} 내의 파일을 탐색합니다. 검색조건 : endswith={endswith}]")
     for filename in os.listdir(folder_path):
         if filename.endswith(endswith):
-            files.append(filename)
+            file_names.append(filename)
 
-    print("load_files()의 결과는 다음과 같습니다. ")
-    for file in files:
-        print(file)
-    print("load_files()을 종료합니다")
-    return files
+    print(f"{folder_path} 내의 파일 이름 - read_file_names()의 결과")
+    for file_name in file_names:
+        print(file_name)
+    return file_names
+
+
+#####################################
+# 기능 : 마지막 숫자를 리턴하는 함수
+# 입력값 : 문자열
+# 리턴값 : 마지막 숫자(int), 숫자가 없으면 None
+def get_last_number_from_string(str_):
+    match = re.findall(r'\d+', str_)
+    if match:
+        return int(match[-1])
+    else:
+        return None
+
+
+#####################################
+# 기능 : 폴더 내 마지막 파일의 숫자를 가져오는 함수
+def get_last_number_in_folder(folder_path):
+    file_name_list = read_file_names(folder_path, endswith='.csv')  # 폴더 내 파일들 이름 읽어온다
+    if len(file_name_list) == 0:    # 폴더 내에 endswith='.csv'인 파일이 없으면
+        print('[폴더 내에 파일이 없습니다 : get_last_number_in_folder()]')
+        return -1
+    last_file_name = file_name_list[-1]   # 마지막 파일 이름
+    print("last_file_name", last_file_name)
+    match = re.findall(r'\d+', last_file_name)
+    if match:
+        return int(match[-1])
+    else:                        # 마지막 파일 이름에 숫자가 없으면
+        print('[마지막 파일 이름에 숫자가 없습니다 : get_last_number_in_folder()]')
+        return -1
 
 
 #####################################
@@ -71,7 +99,7 @@ def save_file(df, folder_path, file_name):
 # combine_csv_file()
 # 기능 : df형식의 데이터가 저장되어있는 .csv 파일들을 하나로 합친다
 def combine_csv_file(folder_path, result_file_name):
-    csv_file_names = load_file_names(folder_path, endswith='.csv')   # .csv로 끝나는 파일들을 전부 검색한다
+    csv_file_names = read_file_names(folder_path, endswith='.csv')   # .csv로 끝나는 파일들을 전부 검색한다
     dataframes = []
 
     # 1. 잘 불러왔는지 확인하기
@@ -166,6 +194,45 @@ def contains_blacklist(str_, blacklist):
 # 리턴값 예시 : '.EC.97.90.EC.8A.A4.EC.97.A0'
 def convert_to_unicode(input_str):
     return '.' + '.'.join(['{:02X}'.format(byte) for byte in input_str.encode('utf-8')])
+
+
+##########################################
+# split_rows_into_chunks()
+# 기능 : row를 chunk_size단위로 끊은 리스트를 반환하는 함수
+# 리턴값 : eX) row 개수가 2345면, [[0,999], [1000, 1999], [2000, 2344]]
+def split_rows_into_chunks(row_count, chunk_size=1000):
+    # 빈 리스트 초기화
+    chunks = []
+
+    # 시작과 끝 인덱스를 설정하여 리스트에 추가
+    start_idx = 0
+    while start_idx < row_count:
+        end_idx = start_idx + chunk_size - 1
+        if end_idx >= row_count:
+            end_idx = row_count - 1
+        chunks.append([start_idx, end_idx])
+        start_idx += chunk_size
+
+    return chunks
+
+
+#########################################
+# 기능 : DataFrame을 chunk_size 단위로 잘라서, 잘려진 DataFrame의 리스트를 반환하는 함수
+# 입력값 : 자를 데이터프레임
+# 리턴값 : 잘라진 df의 리스트
+def split_df_into_sub_dfs(df, chunk_size=1000):
+    row_count = len(df)  # row 개수 확인
+    chunks = split_rows_into_chunks(row_count, chunk_size)  # chunk로 나눌 구간 생성
+
+    # 각 chunk에 대해 DataFrame을 잘라서 리스트에 저장
+    sub_dfs = []
+    for chunk in chunks:
+        start, end = chunk
+        sub_df = df.iloc[start:end + 1]  # 해당 범위의 데이터를 가져옴
+        sub_df = sub_df.reset_index(drop=True)
+        sub_dfs.append(sub_df)
+
+    return sub_dfs
 
 
 #########################################################################################################
