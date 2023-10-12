@@ -61,10 +61,10 @@ def get_url_dc(gall_url, keyword, blacklist):
     print(f"[저장된 url 정보 개수] {len(sub_df_data)}개")
     print(f"[갤러리 주소] {gall_url}")
     df_result = pd.DataFrame(sub_df_data, columns=['date', 'title', 'url', 'media'])
-    util.save_file(df_result, folder_path, f"{file_name}.csv")
+    util.save_csv_file(df_result, f"{file_name}.csv", folder_path)
 
     # 3. 에러로그확인
-    util.error_check(error_log, folder_path, file_name)
+    util.error_check(error_log, file_name, folder_path)
 
 
 #####################################
@@ -97,7 +97,7 @@ def get_content_dc(gall_url, keyword, blacklist, chunk_size=1000):
     done_index = util.get_last_number_in_folder(content_folder_path)    # 마지막 파일 번호
 
     # 1) url.csv를 df로 읽어옴
-    df_url = util.read_file(url_folder_path, f"{url_file_name}.csv")
+    df_url = util.read_csv_file(f"{url_file_name}.csv", url_folder_path)
     row_count = len(df_url)     # url csv 파일 데이터 개수
     sub_dfs = util.split_df_into_sub_dfs(df_url, chunk_size=chunk_size)     # df를 chunk_size 단위로 쪼갬
     for sub_df_index in range(len(sub_dfs)):
@@ -158,16 +158,16 @@ def get_content_dc(gall_url, keyword, blacklist, chunk_size=1000):
             print(f"[{len(sub_df_data)}개의 content 정보가 저장되었습니다]")
             print(f"[갤러리 주소 : {gall_url}]")
             df_result = pd.DataFrame(sub_df_data, columns=['date', 'title', 'url', 'media', 'content', 'is_comment'])
-            util.save_file(df_result, content_folder_path, f"{content_file_name}_{sub_df_index}.csv")
+            util.save_csv_file(df_result, f"{content_file_name}_{sub_df_index}.csv", content_folder_path)
         except Exception as e:
             print('[에러 발생. status : 결과 csv 파일로 저장] ', e)
 
     # sub_dfs를 합친다
-    util.combine_csv_file(content_folder_path, content_file_name)
+    util.combine_csv_file(content_file_name, content_folder_path)
 
     # 에러 로그 체크, 저장
     try:
-        util.error_check(error_log, content_folder_path, content_file_name)
+        util.error_check(error_log, content_file_name, content_folder_path)
     except Exception as e:
         print('[에러 발생. status : 에러 로그 체크] ', e)
 
