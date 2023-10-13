@@ -1,5 +1,8 @@
 import utility_module as util
+import pandas as pd
+import re
 from pykospacing import Spacing
+from soynlp.normalizer import emoticon_normalize
 
 
 ####################################
@@ -21,6 +24,25 @@ def spacing_csv_content(rule_csv_file, target_csv_file, csv_folder_path_='./'):
     print(f"[spaced_{target_csv_file} 파일로 저장되었습니다]")
 
 
+###########################
+# 기능 : spaced .csv 파일을 받아 doublespace .txt 파일을 만든다
+# input_path : spacing 결과 .csv 파일의 경로
+# output_path : doublespace .txt 파일의 경로
+@util.timer_decorator
+def make_doublespace_txt_from_spaced_csv(input_path, output_path):
+    print(f"[{input_path} 파일을 doublespace 처리 하겠습니다]")
+    df = pd.read_csv(input_path, encoding='utf-8')  # spacing 결과 .csv 파일을 불러옵니다
+    # 'content' 칼럼의 문자열에 emoticon_normalize 적용
+    df['spaced_content'] = df['spaced_content'].apply(lambda x: emoticon_normalize(x, num_repeats=3))
+    # space된 content 불러오고, "?"을 제외한 특수문자를 없앤다
+    spaced_content = df['spaced_content'].apply(lambda x: re.sub(r'[^\w\s\?]', '', x))
+    # doublespace 처리
+    merged_text = '  \n'.join(spaced_content)
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(merged_text)                    # 파일 저장
+    print(f"[{output_path} 파일을 만들었습니다]")
+
+
 ########################
 # 기능 : 한글 종성 있는지 판단하는 함수
 def has_jongseong(char):
@@ -30,3 +52,6 @@ def has_jongseong(char):
         return jongseong != 0
     else:
         return False
+
+
+##########################
