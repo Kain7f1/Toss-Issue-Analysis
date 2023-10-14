@@ -6,17 +6,18 @@ from dcinside_crawler import get_url_dc, get_content_dc
 import utility_module as util
 #############################################################################
 #                                 << 설정값 >>
-keyword = "lg화학"       # 검색할 키워드
-gall_name = "코스피"    # 검색할 갤러리 선택하기
+keyword = "금양"       # 검색할 키워드
+gall_name = "금융"    # 검색할 갤러리 선택하기
 
 # 검색할 키워드(keyword)의 블랙리스트
 # 목적에 맞지 않는 콘텐츠를 걸러내는 기능을 한다
 blacklist = {
       "에코": ["에코백", "에코페", "에코팰", "에코플", "에코마", "에코디", "에코랜", "에코스", "에코하", "아마존 에코"]
-    , "에코프로": []
+    , "에코프로": ["http"]
+    , "금양": ["http"]
     , "엘앤에프": ["http"]
-    , "에스엠": []
-    , "카카오": []
+    , "에스엠": ["http"]
+    , "카카오": ["http"]
     , "lg화학": ["http"]
     , "토스": ["토스트", "도리토스", "치토스", "멘토스", "셀토스", "키보토스", "프로토스", "테스토스", "토스테론"]
 }
@@ -48,8 +49,8 @@ gall_url = {
 
 #############################################################################
 #                              << 실행하는 곳 >>
-# get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])        # [1. url 크롤링]
-get_content_dc(gall_url[gall_name], keyword, blacklist[keyword])    # [2. content 크롤링]
+get_url_dc(gall_url[gall_name], keyword, blacklist[keyword])        # [1. url 크롤링]
+# get_content_dc(gall_url[gall_name], keyword, blacklist[keyword])    # [2. content 크롤링]
 
 #############################################################################
 #                                << 실험실 >>
