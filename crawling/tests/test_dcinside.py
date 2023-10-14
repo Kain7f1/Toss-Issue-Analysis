@@ -6,8 +6,8 @@ from dcinside_crawler import get_url_dc, get_content_dc
 import utility_module as util
 #############################################################################
 #                                 << 설정값 >>
-keyword = "현대차"       # 검색할 키워드
-gall_name = "코스피"    # 검색할 갤러리 선택하기
+keyword = "기아"       # 검색할 키워드
+gall_name = "부동산"    # 검색할 갤러리 선택하기
 
 # 검색할 키워드(keyword)의 블랙리스트
 # 목적에 맞지 않는 콘텐츠를 걸러내는 기능을 한다
@@ -29,8 +29,8 @@ blacklist = {
     , "콜마": ["http"] # 한국콜마
     , "휴젤": ["http"]
 
-    , "현대차": ["http"]
-    , "기아": ["http"]
+    , "현대차": ["http"]   # 제안 : 현대자동차도 검색?
+    , "기아": ["http", "기아니", "기아님", "기아닐", "기아닌", "기아이", "기아녀", "기아파트", "기아들", "급기아", "새기아", "사기아", "얘기아", "전기아", "광기아", "러기아", "자기아빠", "자기아들", "자기아는", "장기아프"]
 
     , "토스": ["토스트", "도리토스", "치토스", "멘토스", "셀토스", "키보토스", "프로토스", "테스토스", "토스테론"]
 }
@@ -48,7 +48,7 @@ gall_url = {
     , "금융": "https://gall.dcinside.com/mgallery/board/lists?id=finance"
     , "증권": "https://gall.dcinside.com/mgallery/board/lists/?id=securities"
     , "재테크": "https://gall.dcinside.com/mgallery/board/lists?id=jaetae"
-    , "부동산": "https://gall.dcinside.com/board/lists/?id=immovables"
+    , "부동산": "https://gall.dcinside.com/board/lists/?id=immovables"         # 부동산갤 blacklist : ["서울말", "경출요뽑요", "조희팔"]
     , "신용카드": "https://gall.dcinside.com/board/lists/?id=creditcard"
     , "체크카드": "https://gall.dcinside.com/mgallery/board/lists?id=checkcard"
     , "캠퍼스개미": "https://gall.dcinside.com/mgallery/board/lists?id=smow"
