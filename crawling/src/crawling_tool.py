@@ -109,33 +109,31 @@ def get_search_result(soup, time_sleep=0):
 
 
 ###############################
-# get_max_num()
+# get_max_content_num()
 # 기능 : 검색결과 중 가장 큰 글번호를 구하여 리턴한다
-# 리턴값 : max_num
-def get_max_num(soup, gall_url, gall_id, time_sleep=0):
-    gall_type = get_gall_type(gall_url)     # 갤러리 타입. "minor" or "mini" or "major"
-    try:
-        box = soup.select("div.gall_listwrap tr.ub-content")        # 글만 있는 box
-        first_content = ''
-        # 검색 범위를 정하는 작업
-        for content in box:
-            # 광고, 공지는 제거한다
-            if gall_type == "major":    # 메이저 갤러리
-                gall_num = content.find('td', class_='gall_num').get_text()
-                if gall_num in ["설문", "AD", "공지"]:
-                    continue
-            else:   # 마이너, 미니 갤러리
-                gall_subject = content.find('td', class_='gall_subject').get_text()
-                if gall_subject in ["설문", "AD", "공지"]:
-                    continue
-            # 광고, 공지를 제외한 가장 첫번째 글
-            first_content = content.select_one("td.gall_num").get_text()
-            break
-        max_num = int(int(first_content)/10000+1)*10000      # max_num  의 글번호까지 검색한다
-    except Exception as e:
-        print(f"[오류 발생, 반복] [get_max_num(time_sleep={time_sleep})] ", e)
-        max_num = get_max_num(soup, gall_url, gall_id, time_sleep+2)
-    return max_num
+# 리턴값 : max_content_num
+def get_max_content_num(soup):
+    box = soup.select("div.gall_listwrap tr.ub-content")  # 글만 있는 box
+    # 메이저 / 마이너&미니 갤러리는 max_content_num을 긁어올 부분이 다르다
+    if box[0].find('td', class_='gall_subject'):
+        classification = 'gall_subject'
+    else:
+        classification = 'gall_num'
+
+    print("classification :", classification)
+    first_content_num = ''
+    ignore_list = ["설문", "AD", "공지", "이슈"]  # 무시할 리스트. 공지나 광고 같은거 있으면 패스
+    for content in box:
+        content_num = content.find('td', class_=classification).get_text()
+        # ignore_list에 있으면 제외
+        if content_num in ignore_list:
+            continue
+        # ignore_list 제외한 가장 첫번째 글
+        first_content_num = content.select_one("td.gall_num").get_text()
+
+    max_content_num = int(int(first_content_num) / 10000 + 1) * 10000   # 1만단위로 변환
+    return max_content_num
+
 
 
 #####################################

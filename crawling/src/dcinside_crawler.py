@@ -23,8 +23,8 @@ def get_url_dc(gall_url, keyword, blacklist):
         print("gall_id : ", gall_id)
         url_base = cr.get_url_base(gall_url)  # "https" 부터 "board/" 이전까지의 url 부분 (major갤, minor갤, mini갤)
         print("url_base : ", url_base)
-        max_num = cr.get_max_num(soup, gall_url, gall_id)   # 검색결과 중, 가장 큰 글번호 10000단위로 올림한 값/10000
-        print("max_num : ", max_num)
+        max_content_num = cr.get_max_content_num(soup)   # 검색결과 중, 가장 큰 글번호 10000단위로 올림한 값/10000
+        print("max_num : ", max_content_num)
         folder_path = f"./url/{keyword}"        # 저장할 폴더 경로 설정
         util.create_folder(folder_path)         # 폴더 만들기
         error_log = []                          # 에러 로그 저장
@@ -36,7 +36,7 @@ def get_url_dc(gall_url, keyword, blacklist):
         return 0
 
     # 1. url 크롤링
-    for search_pos in range(max_num, 0, -10000):
+    for search_pos in range(max_content_num, 0, -10000):
         temp_url = f"{url_base}/board/lists/?id={gall_id}&page=1&search_pos=-{search_pos}&s_type=search_subject_memo&s_keyword={keyword_unicode}"
         print(f"[{keyword}의 검색 결과 / 범위 : {search_pos}~{search_pos-10000}] {temp_url}")
         temp_soup = cr.get_soup_from_url(temp_url)  # soup 받아오기
