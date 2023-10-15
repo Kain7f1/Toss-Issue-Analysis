@@ -121,10 +121,10 @@ def get_content_dc(gall_url, keyword, blacklist, whitelist=None, chunk_size=1000
             print("{step 1 시작} 본문 정보를 추가하겠습니다")
             new_row = cr.get_new_row_from_main_content(url_row, soup)  # 본문 정보를 추가
             if util.contains_any_from_list(new_row[-2], whitelist):    # whitelist의 단어가 있으면
-                print("[content에 whitelist에 해당하는 단어 발견]")
+                print("[본문 content에 whitelist에 해당하는 단어 발견]")
                 pass
             elif util.contains_any_from_list(new_row[-2], blacklist):  # blacklist의 단어가 있으면
-                print("{step 1~3 종료} content에 blacklist에 해당하는 단어 발견 : ", new_row[-2])
+                print("{step 1~3 종료} 본문 content에 blacklist에 해당하는 단어 발견 : ", new_row[-2])
                 continue    # blacklist의 단어가 있으면, 다음 row로 넘어갑니다
             sub_df_data.append(new_row)     # sub_df_data에 new_row를 추가한다
             print("{step 1 종료} 본문을 추가했습니다", new_row[0], new_row[-2])
@@ -158,7 +158,7 @@ def get_content_dc(gall_url, keyword, blacklist, whitelist=None, chunk_size=1000
                     print(f'[ERROR][index : {index}]{status}[error message : {e}]')
                     error_log.append([index, status, e, title, url])
                     continue
-            print("{step 3 종료} 댓글 크롤링을 종료합니다")
+            print("{step 3 종료} 댓글 크롤링 완료하였습니다")
         # sub_df 크롤링 결과를 csv 파일로 저장
         try:
             print(f"[{len(sub_df_data)}개의 content 정보가 저장되었습니다]")

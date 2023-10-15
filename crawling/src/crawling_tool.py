@@ -271,13 +271,13 @@ def get_reply_date(reply):
 # 기능 : 무시해야하는 댓글이면, True를 반환하고, 필요한 댓글이면 False를 반환합니다
 def is_ignore_reply(reply):
     if reply.select_one("p.del_reply"):
-        print("[삭제된 코멘트입니다]")
+        # print("[삭제된 코멘트입니다]")
         return True
     elif reply.find('span', {'data-nick': '댓글돌이'}):
-        print("[댓글돌이는 무시합니다]")
+        # print("[댓글돌이는 무시합니다]")
         return True
     elif reply.find('div', {'class': 'comment_dccon'}):
-        print("[디시콘은 무시합니다]")
+        # print("[디시콘은 무시합니다]")
         return True
     else:
         return False
