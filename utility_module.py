@@ -180,9 +180,9 @@ def preprocess_content_dc(text):
 
 
 ##################################################
-# 기능 : 입력한 문자열에, blacklist의 원소가 포함되어 있으면 True, 아니면 False를 리턴하는 함수
-def contains_blacklist(str_, blacklist):
-    for item in blacklist:
+# 기능 : 입력한 문자열에, list의 원소가 포함되어 있으면 True, 아니면 False를 리턴하는 함수
+def contains_any_from_list(str_, list_):
+    for item in list_:
         if item in str_:
             return True
     return False
