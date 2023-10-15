@@ -14,9 +14,11 @@ import pandas as pd
 # 생성 파일 : url_dcinside_{gall_id}.csv
 # columns = ['date', 'title', 'url', 'media']
 @util.timer_decorator
-def get_url_dc(gall_url, keyword, blacklist):
+def get_url_dc(gall_url, keyword, blacklist, whitelist=None):
     # 0. 기본값 세팅 단계
     try:
+        if whitelist is None:
+            whitelist = []
         soup = cr.get_soup_from_url(gall_url)
         keyword_unicode = util.convert_to_unicode(keyword)   # 입력받은 키워드를 유니코드로 변환한다
         gall_id = cr.get_gall_id(gall_url)                   # 갤러리 id
@@ -50,7 +52,7 @@ def get_url_dc(gall_url, keyword, blacklist):
             # 글 하나씩 뽑아서 크롤링
             for element in element_list:    # element는 글 하나
                 # [검색결과에서 글 하나씩 크롤링]
-                is_contine, new_row = cr.get_new_row_from_search_result(element, gall_id, blacklist)
+                is_contine, new_row = cr.get_new_row_from_search_result(element, gall_id, blacklist, whitelist)
                 if is_contine:  # 광고글이거나, 제목에 블랙리스트에 있는 단어가 있으면
                     continue    # 다음 element로 넘어간다
                 else:                           # 정상적이면
@@ -86,7 +88,9 @@ def get_url_dc(gall_url, keyword, blacklist):
 # 5) 에러로그 체크 및 저장
 #################################
 @util.timer_decorator
-def get_content_dc(gall_url, keyword, blacklist, chunk_size=1000):
+def get_content_dc(gall_url, keyword, blacklist, whitelist=None, chunk_size=1000):
+    if whitelist is None:
+        whitelist = []
     gall_id = cr.get_gall_id(gall_url)              # 갤 id
     url_folder_path = f"./url/{keyword}"            # 읽어올 url 폴더 경로 설정
     content_folder_path = f"./content/{keyword}"    # 저장할 content 폴더 경로 설정
@@ -116,12 +120,14 @@ def get_content_dc(gall_url, keyword, blacklist, chunk_size=1000):
             # {step 1} 본문 정보 row를 sub_df_data에 추가
             print("{step 1 시작} 본문 정보를 추가하겠습니다")
             new_row = cr.get_new_row_from_main_content(url_row, soup)  # 본문 정보를 추가
-            if util.contains_blacklist(new_row[-2], blacklist):
-                print("{step 1~3 종료} content에 blacklist에 해당하는 단어 발견 : ", new_row[-2])
-                continue    # 블랙리스트에 해당하는 내용이 있으면, 다음 row로 넘어갑니다
-            else:
-                sub_df_data.append(new_row)                                         # sub_df_data에 new_row를 추가한다
-                print("{step 1 종료} 본문을 추가했습니다", new_row[0], new_row[-2])
+            if util.contains_any_from_list(new_row[-2], whitelist):    # whitelist의 단어가 있으면
+                print("[본문 content에 whitelist에 해당하는 단어 발견]")
+                pass
+            elif util.contains_any_from_list(new_row[-2], blacklist):  # blacklist의 단어가 있으면
+                print("{step 1~3 종료} 본문 content에 blacklist에 해당하는 단어 발견 : ", new_row[-2])
+                continue    # blacklist의 단어가 있으면, 다음 row로 넘어갑니다
+            sub_df_data.append(new_row)     # sub_df_data에 new_row를 추가한다
+            print("{step 1 종료} 본문을 추가했습니다", new_row[0], new_row[-2])
 
             # {step 2} 댓글들 정보들을 불러오겠습니다
             # new_row 형식 : ['date', 'title', 'url', 'media', 'content', 'is_comment']
@@ -152,7 +158,7 @@ def get_content_dc(gall_url, keyword, blacklist, chunk_size=1000):
                     print(f'[ERROR][index : {index}]{status}[error message : {e}]')
                     error_log.append([index, status, e, title, url])
                     continue
-            print("{step 3 종료} 댓글 크롤링을 종료합니다")
+            print("{step 3 종료} 댓글 크롤링 완료하였습니다")
         # sub_df 크롤링 결과를 csv 파일로 저장
         try:
             print(f"[{len(sub_df_data)}개의 content 정보가 저장되었습니다]")

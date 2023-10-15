@@ -135,12 +135,11 @@ def get_max_content_num(soup):
     return max_content_num
 
 
-
 #####################################
 # get_new_row_from_search_result()
 # 기능 : 검색결과에서 글 하나의 정보를 리턴한다
 # 리턴값 : is_continue(이 정보가 불필요하면 True, 필요하면 False), new_row(글 하나의 정보)
-def get_new_row_from_search_result(element, gall_id, blacklist, error_count=0):
+def get_new_row_from_search_result(element, gall_id, blacklist, whitelist, error_count=0):
     new_row = []
     is_continue = False     # is_continue가 True면 이 함수를 사용하는 반복문을 탈출하도록 할 것입니다
     try:
@@ -154,15 +153,18 @@ def get_new_row_from_search_result(element, gall_id, blacklist, error_count=0):
         date = element.find('td', class_='gall_date')['title'][:10]  # date 가져오기
         title = element.find('td', class_='gall_tit ub-word').find('a').get_text(strip=True)  # title 가져오기
         title = util.preprocess_title(title)  # 제목을 전처리하기
-        if util.contains_blacklist(title, blacklist):
-            print("제목에 blacklist에 해당하는 단어 발견 : ", title)    # 제목에 blacklist에 해당하는 단어 발견
+        if util.contains_any_from_list(title, whitelist):       # whitelist에 해당하는 단어 발견
+            print("제목에 whitelist에 해당하는 단어 발견 : ", title)
+            pass    # whitellist의 단어가 있으면, 유의미한 정보이므로 수집한다
+        elif util.contains_any_from_list(title, blacklist):     # blacklist에 해당하는 단어 발견
+            print("제목에 blacklist에 해당하는 단어 발견 : ", title)
             is_continue = True              # 제목에 blacklist의 단어가 있으면
             return is_continue, new_row     # 무시하고 넘어가기
         url = "https://gall.dcinside.com" + element.select_one("td.gall_tit a")['href']
         new_row = [date, title, url, gall_id]
     except Exception as e:
         print("[오류 발생, 반복] [get_new_row_from_search_result()] ", e)
-        is_continue, new_row = get_new_row_from_search_result(element, gall_id, blacklist, error_count+1)
+        is_continue, new_row = get_new_row_from_search_result(element, gall_id, blacklist, whitelist, 1)
     return is_continue, new_row
 
 
@@ -269,13 +271,13 @@ def get_reply_date(reply):
 # 기능 : 무시해야하는 댓글이면, True를 반환하고, 필요한 댓글이면 False를 반환합니다
 def is_ignore_reply(reply):
     if reply.select_one("p.del_reply"):
-        print("[삭제된 코멘트입니다]")
+        # print("[삭제된 코멘트입니다]")
         return True
     elif reply.find('span', {'data-nick': '댓글돌이'}):
-        print("[댓글돌이는 무시합니다]")
+        # print("[댓글돌이는 무시합니다]")
         return True
     elif reply.find('div', {'class': 'comment_dccon'}):
-        print("[디시콘은 무시합니다]")
+        # print("[디시콘은 무시합니다]")
         return True
     else:
         return False
