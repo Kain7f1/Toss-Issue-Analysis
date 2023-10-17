@@ -1,8 +1,11 @@
-import utility_module as util
-import pandas as pd
-import re
 from pykospacing import Spacing
 from soynlp.normalizer import emoticon_normalize
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.decomposition import LatentDirichletAllocation
+import re
+import joblib
+import pandas as pd
+import utility_module as util
 
 
 ####################################
@@ -55,3 +58,33 @@ def has_jongseong(char):
 
 
 ##########################
+# lda 모델을 학습하고 저장하는 함수
+@util.timer_decorator
+def fit_and_save_lda_model(csv_file_path, csv_folder_path, save_file_path, save_folder_path, min_df, n_components, max_iter):
+    df = util.read_csv_file(csv_file_path, csv_folder_path)
+    # It looks like we lost the variable `texts_with_bigrams` as well.
+    # Let's start from extracting the 'tokens_with_bigrams' again and proceed to LDA modeling.
+
+    # Extract tokens_with_bigrams from the DataFrame
+    token_with_bigram_lists = df['tokens_with_bigrams'].apply(eval).tolist()
+
+    # Convert the list of tokens to text data
+    texts_with_bigrams = [' '.join(tokens) for tokens in token_with_bigram_lists]
+
+    # Use CountVectorizer to transform the text data to a term frequency (TF) matrix
+    print("vectorizer 하겠습니다")
+    vectorizer = CountVectorizer(max_df=0.95, min_df=min_df)
+    X_with_bigrams = vectorizer.fit_transform(texts_with_bigrams)
+
+    # Create and train LDA model with 100 topics
+    lda_model = LatentDirichletAllocation(
+        n_components=n_components,  # 토픽의 수
+        doc_topic_prior=0.01,  # 알파 값
+        max_iter=max_iter,  # 반복 횟수
+        n_jobs=-1,
+        verbose=1
+    )
+    print("lda model을 학습하겠습니다.")
+    lda_model.fit(X_with_bigrams)   # 모델 학습
+
+    joblib.dump(lda_model, f"{save_folder_path}/{save_file_path}")
