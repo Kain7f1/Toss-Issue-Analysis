@@ -1,2 +1,2 @@
-# Corporate-Image-Enhancement
-기업 이미지 개선 프로젝트
+# Toss-Image-Enhancement
+Toss 기업 이미지 개선 프로젝트
