@@ -4,7 +4,7 @@
 * 커뮤니티에서 언급되는 Toss 관련 글 데이터를 시각화하고, 주 별로 어떤 이슈가 있었는지 분석한다
 * 2023-09-11 ~ 2023-10-18
 * 참여 인원 : 3명
-* Pycharm, GitHub, Notion, Tableau 
+* 사용한 툴 : Pycharm, GitHub, Notion, Tableau 
 * 노션(Notion) 링크 : https://kain7f1.notion.site/Toss-Image-Enhancement-96a129fbd90f4bf39a94e800fc451e9f
 
 
