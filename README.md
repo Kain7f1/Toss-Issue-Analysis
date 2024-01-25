@@ -1,4 +1,4 @@
-# Toss-Image-Enhancement
+# Toss-Issue-Analysis
 
 ## Toss 이슈 분석 프로젝트
 * 커뮤니티에서 언급되는 Toss 관련 글 데이터를 시각화하고, 주 별로 어떤 이슈가 있었는지 분석한다
